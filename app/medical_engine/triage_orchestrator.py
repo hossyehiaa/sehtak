@@ -1,9 +1,12 @@
 """
 Module 3: The Dots Connector & Clinical Grounding (`app/medical_engine/triage_orchestrator.py`)
 Combines the extracted patient timeline + Deterministic Rule Engine outputs + Evidence-Based Clinical Guidelines
-(USPSTF / NICE NG148 / KDIGO Acute Kidney Injury guidelines) to produce two distinct outputs:
-1. Caregiver Response (Egyptian Arabic)
-2. Physician Emergency Triage Payload (English 5-second ER format) + Monochrome 1-Page PDF Report
+(USPSTF / NICE NG148 / KDIGO Acute Kidney Injury guidelines) to produce:
+1. Caregiver Response (Egyptian Arabic - formal, empathetic, emoji-free)
+2. Physician Emergency Triage Payload (English 5-second ER format)
+3. Two Monochrome 1-Page PDF Reports:
+   - Arabic Hospital Edition (`Emergency_Triage_Report_AR.pdf`)
+   - English ER Physician Edition (`Emergency_Triage_Report_EN.pdf`)
 """
 
 import base64
@@ -41,8 +44,8 @@ class TriageOrchestrator:
         rule_eval: RuleEngineEvaluation,
     ) -> str:
         """
-        Generates an empathetic, clear, non-panicking but firm actionable Egyptian Arabic response
-        for the caregiver (son/daughter) or patient.
+        Generates an empathetic, clear, non-panicking, firm, emoji-free Egyptian Arabic response
+        for the caregiver or patient.
         """
         if rule_eval.halt_for_clarification and rule_eval.clarification_prompt_ar:
             return rule_eval.clarification_prompt_ar
@@ -63,41 +66,41 @@ class TriageOrchestrator:
         )
 
         lines: List[str] = []
-        lines.append("🩺 **تقييم «صحتك AI» للسلامة الدوائية والفرز الطبي الذكي**")
-        lines.append("━━━━━━━━━━━━━━━━━━━━━━")
-        lines.append("ألف سلامة على المريض، ربنا يطمنكم عليه ويبارك في صحته. احنا راجعنا التاريخ الدوائي والأعراض بدقة:")
-        lines.append(f"• **الأدوية المرصودة:** {meds_ar}")
-        lines.append(f"• **الأعراض الحالية:** {symptoms_ar}")
+        lines.append("**تقييم «صحتك AI» للسلامة الدوائية والفرز الطبي**")
+        lines.append("--------------------------------------------------")
+        lines.append("تمت مراجعة التاريخ الدوائي والأعراض الإكلينيكية المسجلة للمريض بدقة:")
+        lines.append(f"- **الأدوية المرصودة:** {meds_ar}")
+        lines.append(f"- **الأعراض الحالية:** {symptoms_ar}")
         lines.append("")
 
         if rule_eval.triggered_alerts:
-            lines.append("🔍 **ربط الخيوط الطبية (ليه الأعراض دي مهمة مع الأدوية؟):**")
+            lines.append("**التفسير الإكلينيكي وربط الأعراض بالأدوية:**")
             for alert in rule_eval.triggered_alerts:
                 lines.append(f"{alert.patient_warning_ar}")
                 lines.append("")
 
             target_specialty = rule_eval.triggered_alerts[0].recommended_specialty_ar
-            lines.append("⚡ **الخطوات العملية المطلوبة فوراً (بدون قلق بس بحسم):**")
+            lines.append("**الإجراءات الطبية العاجلة المطلوبة:**")
             lines.append(
-                "1️⃣ **إيقاف المسكن فوراً:** وقفوا أي مسكنات من عيلة (كتافلام / فولتارين / كيتوفان / بروفين / باي-ألكوفان) فوراً تحت إشراف الطبيب، وممنوع أخذ مسكن تاني لتسكين وجع الدراع أو الجسم."
+                "1. **إيقاف المسكن فوراً:** يجب إيقاف أي مسكنات من عائلة (كتافلام / فولتارين / كيتوفان / بروفين / باي-ألكوفان) فوراً تحت إشراف الطبيب، وعدم تناول أي مسكن إضافي لتسكين ألم الذراع أو الجسم."
             )
             lines.append(
-                f"2️⃣ **التخصص الطبي المطلوب:** التوجه في أقرب وقت إلى **{target_specialty}** (ومعكم تقرير الطوارئ الـ PDF المرفق لتسليمه للدكتور)."
+                f"2. **التوجه الطبي المباشر:** التوجه إلى **{target_specialty}** وتقديم التقرير الطبي المرفق (نسخة المستشفى باللغة العربية أو النسخة الإنجليزية لطبيب الطوارئ)."
             )
-            lines.append("3️⃣ **التحاليل والفحوصات العاجلة المطلوب عرضها على الطبيب:**")
+            lines.append("3. **التحاليل والفحوصات المعملية العاجلة المطلوبة:**")
             for lab in rule_eval.urgent_labs_consolidated:
-                lines.append(f"   • {lab}")
+                lines.append(f"   - {lab}")
         else:
-            lines.append("✅ **التقييم المبدئي:**")
+            lines.append("**التقييم المبدئي:**")
             lines.append(
-                "لم نرصد تناول مسكنات عالية الخطورة لفترات طويلة، ولكن ننصح بمراجعة طبيب باطنة مختص لتقييم الأعراض بدقة وعدم تناول أي مسكنات بدون وصفة طبية."
+                "لم يتم رصد استخدام مسكنات عالية الخطورة لفترات مطولة، ولكن يُنصح بمراجعة طبيب باطنة مختص لتقييم الأعراض بدقة وتجنب تناول أي مسكنات دون وصفة طبية."
             )
 
         lines.append("")
-        lines.append("📄 **مرفق مع الرسالة:** ملف `Emergency_Triage_Report.pdf` جاهز للطباعة أو العرض من الموبايل مباشرة لدكتور الطوارئ أو الباطنة عشان يشوف ملخص الحالة في 5 ثواني.")
-        lines.append("━━━━━━━━━━━━━━━━━━━━━━")
+        lines.append("**التقارير الطبية المرفقة:** تم إصدار نسختين من تقرير الفرز الطبي للطوارئ (نسخة باللغة العربية للمستشفى والأسرة، ونسخة باللغة الإنجليزية لطبيب الطوارئ).")
+        lines.append("--------------------------------------------------")
         lines.append(
-            "⚖️ *إخلاء مسؤولية طبي: نظام «صحتك AI» هو مساعد ذكي للفرز الطبي والتنبيه الدوائي المبكر (Clinical Triage & Safety Guardian) ولا يُعد بديلاً عن الكشف الطبي المباشر أو تشخيص الطبيب المعالج.*"
+            "*إخلاء مسؤولية طبي: نظام «صحتك AI» هو نظام دعم قرار وفرز طبي مبكر (Clinical Triage & Safety Guardian) ولا يُعد بديلاً عن الفحص الطبي المباشر أو تشخيص الطبيب المعالج.*"
         )
         return "\n".join(lines)
 
@@ -182,17 +185,15 @@ class TriageOrchestrator:
         """
         Merges new multimodal intake into the patient's session, runs the deterministic
         rules engine, and either halts for clarification (Rule 2) or generates the complete
-        Arabic caregiver alert + English ER physician payload + monochrome PDF report.
+        Arabic caregiver alert + English ER physician payload + BOTH Arabic and English PDFs.
         """
         existing_intake = await get_patient_intake_session(session_id)
         merged_intake = merge_clinical_intake(existing_intake, incoming_intake, raw_user_note)
 
-        # Clean up internal duration placeholder if actual medications already exist
         real_meds = [m for m in merged_intake.medications if m.brand_name != "__DURATION_UPDATE__"]
         if real_meds:
             merged_intake.medications = real_meds
 
-        # Run Deterministic Medical Rules Engine BEFORE finalizing output
         rule_eval = rules_engine.evaluate(merged_intake)
 
         if rule_eval.halt_for_clarification:
@@ -211,32 +212,47 @@ class TriageOrchestrator:
                 caregiver_response_ar=caregiver_msg,
                 physician_payload_en=None,
                 pdf_report_path=None,
+                pdf_report_path_ar=None,
+                pdf_base64=None,
+                pdf_base64_ar=None,
                 intake_snapshot=merged_intake,
                 rule_evaluation=rule_eval,
             )
 
-        # Build both caregiver Arabic output and physician English ER summary
         caregiver_msg = self._build_caregiver_response_ar(merged_intake, rule_eval)
         physician_payload = self._build_physician_payload_en(merged_intake, rule_eval)
 
         arabic_pdf_lines = [
-            f"1. إيقاف المسكنات فوراً (مثل كتافلام، فولتارين، كيتوفان، بروفين) تحت إشراف الطبيب.",
-            f"2. التوجه إلى طوارئ الباطنة والكلى لتقييم وظائف الكلى والاطمئنان على المريض.",
-            f"3. التحاليل المطلوبة بشكل عاجل: كرياتينين (Serum Creatinine)، بولينا (BUN)، معدل الفلترة (eGFR)، بوتاسيوم وصوديوم بالدم، وتحليل بول كامل.",
-            f"4. اعرض هذا التقرير الطبي مباشرة على طبيب الطوارئ المختص فور الوصول.",
+            "1. إيقاف المسكنات فوراً (مثل كتافلام، فولتارين، كيتوفان، بروفين، باي-ألكوفان) تحت إشراف الطبيب.",
+            "2. التوجه العاجل إلى قسم طوارئ الباطنة والكلى بالمستشفى لتقييم وظائف الكلى وضغط الدم.",
+            "3. إجراء التحاليل المذكورة أعلاه بشكل عاجل وعرض هذا التقرير على الطبيب المعالج فور الوصول.",
         ]
 
-        pdf_path = pdf_generator.generate_triage_pdf(
+        # 1. Generate English Physician PDF
+        pdf_path_en = pdf_generator.generate_triage_pdf(
             physician_payload=physician_payload,
             arabic_family_instructions=arabic_pdf_lines,
             rule_eval=rule_eval,
         )
-        pdf_b64: Optional[str] = None
+        # 2. Generate Arabic Hospital PDF
+        pdf_path_ar = pdf_generator.generate_arabic_hospital_pdf(
+            physician_payload=physician_payload,
+            intake=merged_intake,
+            rule_eval=rule_eval,
+            arabic_family_instructions=arabic_pdf_lines,
+        )
+
+        pdf_b64_en: Optional[str] = None
+        pdf_b64_ar: Optional[str] = None
         try:
-            pdf_bytes = Path(pdf_path).read_bytes()
-            pdf_b64 = base64.b64encode(pdf_bytes).decode("ascii")
+            pdf_b64_en = base64.b64encode(Path(pdf_path_en).read_bytes()).decode("ascii")
         except Exception:
-            pdf_b64 = None
+            pdf_b64_en = None
+
+        try:
+            pdf_b64_ar = base64.b64encode(Path(pdf_path_ar).read_bytes()).decode("ascii")
+        except Exception:
+            pdf_b64_ar = None
 
         await save_patient_intake_session(
             session_id=session_id,
@@ -252,8 +268,10 @@ class TriageOrchestrator:
             severity=rule_eval.overall_severity,
             caregiver_response_ar=caregiver_msg,
             physician_payload_en=physician_payload,
-            pdf_report_path=pdf_path,
-            pdf_base64=pdf_b64,
+            pdf_report_path=pdf_path_en,
+            pdf_report_path_ar=pdf_path_ar,
+            pdf_base64=pdf_b64_en,
+            pdf_base64_ar=pdf_b64_ar,
             intake_snapshot=merged_intake,
             rule_evaluation=rule_eval,
         )
@@ -265,7 +283,6 @@ class TriageOrchestrator:
         channel: str = "telegram",
         reset: bool = False,
     ) -> TriageOrchestratorResult:
-        """End-to-end entry point for text input from any channel."""
         if reset:
             await reset_patient_session(session_id)
         extracted = await multimodal_intake.extract_from_text(text)
@@ -283,7 +300,6 @@ class TriageOrchestrator:
         mime_type: str = "audio/ogg",
         channel: str = "telegram",
     ) -> TriageOrchestratorResult:
-        """End-to-end entry point for Egyptian Arabic voice note input."""
         extracted = await multimodal_intake.extract_from_voice(audio_bytes, mime_type=mime_type)
         return await self.process_Session_and_orchestrate(
             session_id=session_id,
@@ -300,7 +316,6 @@ class TriageOrchestrator:
         caption: Optional[str] = None,
         channel: str = "telegram",
     ) -> TriageOrchestratorResult:
-        """End-to-end entry point for medication box / blister strip photo input."""
         extracted = await multimodal_intake.extract_from_image(
             image_bytes=image_bytes,
             mime_type=mime_type,

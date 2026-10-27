@@ -162,11 +162,19 @@ class TriageOrchestratorResult(BaseModel):
     )
     pdf_report_path: Optional[str] = Field(
         default=None,
-        description="File system path to the generated monochrome 1-page Emergency_Triage_Report.pdf",
+        description="File system path to the generated monochrome 1-page English Emergency_Triage_Report_EN.pdf",
+    )
+    pdf_report_path_ar: Optional[str] = Field(
+        default=None,
+        description="File system path to the generated monochrome 1-page Arabic Emergency_Triage_Report_AR.pdf",
     )
     pdf_base64: Optional[str] = Field(
         default=None,
-        description="Base64-encoded PDF binary payload for instant browser viewing/downloading in serverless deployments",
+        description="Base64-encoded English PDF binary payload for instant browser viewing/downloading",
+    )
+    pdf_base64_ar: Optional[str] = Field(
+        default=None,
+        description="Base64-encoded Arabic PDF binary payload for instant hospital/family downloading",
     )
     intake_snapshot: ClinicalIntakeSchema
     rule_evaluation: RuleEngineEvaluation

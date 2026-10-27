@@ -20,3 +20,4 @@ generated_reports/
 # Vercel
 .vercel/
 .DS_Store
+.vercel

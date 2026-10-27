@@ -160,9 +160,10 @@ class DeterministicRulesEngine:
                 overall_severity=TriageSeverity.NEEDS_CLARIFICATION,
                 halt_for_clarification=True,
                 clarification_prompt_ar=(
-                    f"⚠️ رصدنا إن المريض بياخد دواء عالي الخطورة على الكلى والمعدة ({drug_names_str}).\n\n"
-                    f"🛑 **{self.CLARIFICATION_QUESTION_AR}**\n"
-                    f"(وممكن تقولي كمان بياخد كام قرص أو كيس في اليوم، وهل عنده أي أعراض زي همدان، غممان نفس، أو وجع في الجسم؟)"
+                    f"[تنبيه دوائي هام]\n"
+                    f"تم رصد استخدام دواء عالي الخطورة على الكلى والمعدة ({drug_names_str}).\n\n"
+                    f"**{self.CLARIFICATION_QUESTION_AR}**\n"
+                    f"يرجى أيضاً توضيح الجرعة اليومية وأي أعراض حالية مثل الإرهاق العام أو الغثيان أو ألم الجسم."
                 ),
                 triggered_alerts=[],
                 normalized_medications=normalized_meds,
@@ -219,9 +220,9 @@ class DeterministicRulesEngine:
                         f"Acute Interstitial Nephritis, or Silent Uremia.{cardiac_addendum_en}"
                     ),
                     patient_warning_ar=(
-                        f"🚨 **تحذير طبي عاجل (خطر صامت على الكلى):**\n"
-                        f"استخدام المسكن ({nsaid_summary_ar}) لفترة طويلة (أكتر من 7 أيام) مع ظهور أعراض عامة زي الهمدان أو وجع الدراع/الجسم أو غممان النفس "
-                        f"هو علامة إنذار مبكرة لاحتمال وجود **إجهاد حاد أو قصور صامت في وظائف الكلى (Drug-Induced AKI)** بسبب المسكنات."
+                        f"**تحذير طبي عاجل (خطر صامت على وظائف الكلى):**\n"
+                        f"استخدام المسكن ({nsaid_summary_ar}) لفترة تتجاوز 7 أيام مع ظهور أعراض عامة مثل الإرهاق الشديد أو ألم الذراع/الجسم أو الغثيان "
+                        f"يُعد مؤشراً إكلينيكياً خطيراً لاحتمال حدوث **قصور كلوي حاد ناتج عن المسكنات (Drug-Induced Acute Kidney Injury)**."
                     ),
                     mandatory_action_en=(
                         "1. IMMEDIATE CESSATION of all NSAIDs (Cataflam/Ketofan/Brufen/Voltaren) under medical supervision.\n"
@@ -248,7 +249,7 @@ class DeterministicRulesEngine:
                         f"High risk of subclinical renal function decline (AKI/CKD progression) and silent peptic ulceration."
                     ),
                     patient_warning_ar=(
-                        "⚠️ **تنبيه هام بخصوص المسكنات:** المريض بياخد المسكن بقاله أكتر من أسبوع، وده بيحط الكلى وجدار المعدة في خطر صامت حتى لو لسه مظهرش أعراض شديدة."
+                        "**تنبيه طبي بخصوص المسكنات:** استخدام المسكن لفترة تتجاوز أسبوعاً يعرض الكلى وجدار المعدة لخطر الإجهاد الصامت حتى قبل ظهور أعراض شديدة."
                     ),
                     mandatory_action_en=(
                         "Discontinue chronic NSAID regimen under physician guidance and perform baseline renal function screening (Serum Creatinine, BUN, eGFR, Electrolytes, Urine Analysis)."
@@ -283,8 +284,8 @@ class DeterministicRulesEngine:
                         f"and diuretics reduce intravascular volume—precipitating rapid hemodynamic Acute Kidney Injury and life-threatening Hyperkalemia."
                     ),
                     patient_warning_ar=(
-                        f"🚨 **تفاعل دوائي خطير جداً على الكلى ({combo_meds}):**\n"
-                        f"الجمع بين أدوية الضغط/مدرات البول والمسكنات بيقفل ضغط الفلترة جوه الكلى تماماً (المعروف طبياً بـ Triple Whammy) وبيسبب قصور كلوي حاد وارتفاع خطير في بوتاسيوم الدم."
+                        f"**تفاعل دوائي خطير على الكلى ({combo_meds}):**\n"
+                        f"الجمع بين أدوية الضغط أو مدرات البول مع المسكنات يقلل ضغط الفلترة داخل الكلى بشكل حاد (Triple Whammy) وقد يؤدي إلى قصور كلوي حاد وارتفاع خطير في بوتاسيوم الدم."
                     ),
                     mandatory_action_en=(
                         "STOP NSAID immediately. Check stat Serum Creatinine, eGFR, BUN, and Serum Potassium (K+). Monitor blood pressure and urine output closely."
@@ -315,8 +316,8 @@ class DeterministicRulesEngine:
                         f"Synergistic mucosal injury and platelet/coagulation inhibition drastically elevate the risk of silent upper GI bleeding, anemia, and hemorrhagic shock."
                     ),
                     patient_warning_ar=(
-                        f"🚨 **خطر نزيف معوي وتقرحات حادة ({interacting}):**\n"
-                        f"أخد المسكنات مع أدوية السيولة أو الكورتيزون بيضاعف خطر نزيف المعدة الصامت والأنيميا الحادة."
+                        f"**خطر نزيف معوي وتقرحات حادة ({interacting}):**\n"
+                        f"تناول المسكنات بالتزامن مع أدوية السيولة أو الكورتيزون يضاعف احتمالية حدوث نزيف معوي صامت وأنيميا حادة."
                     ),
                     mandatory_action_en=(
                         "Discontinue NSAID immediately. Evaluate for occult/overt GI bleeding (CBC for Hemoglobin drop, Stool Occult Blood, Coagulation profile / INR if on Warfarin)."

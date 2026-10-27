@@ -77,11 +77,14 @@ def test_end_to_end_sehtak_ai_pipeline():
         assert "Electrolytes" in labs_joined
         assert "Urine Analysis" in labs_joined
 
-        # Verify PDF report was generated and exists on disk
-        pdf_path = step2_data["pdf_report_path"]
-        assert pdf_path is not None
-        assert Path(pdf_path).exists()
-        assert Path(pdf_path).stat().st_size > 1000
+        # Verify both English and Arabic PDF reports were generated and exist on disk
+        pdf_path_en = step2_data["pdf_report_path"]
+        pdf_path_ar = step2_data["pdf_report_path_ar"]
+        assert pdf_path_en is not None and Path(pdf_path_en).exists()
+        assert pdf_path_ar is not None and Path(pdf_path_ar).exists()
+        assert Path(pdf_path_ar).stat().st_size > 1000
+        assert step2_data["pdf_base64"] is not None
+        assert step2_data["pdf_base64_ar"] is not None
 
         # 4. Test Triple Whammy Combination (Capoten + Lasix + Ketofan for 14 days)
         triple_resp = client.post(
