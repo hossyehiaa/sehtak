@@ -58,6 +58,36 @@ CRITICAL INSTRUCTIONS FOR EGYPTIAN MEDICAL CONTEXT:
      - "غممان نفس / نفسه مسدودة / ترجيع" -> "Nausea, anorexia, and uremic gastropathy suspicion"
      - "قلة بول / المية محبوسة / رجله مورمة" -> "Oliguria and peripheral edema"
      - "نهجان / كرشة نفس" -> "Dyspnea / volume overload suspicion"
+
+4. STRICT JSON OUTPUT STRUCTURE:
+Output strictly valid JSON matching this schema (do NOT return symptoms or medications as simple string arrays):
+{
+  "raw_transcript_or_notes": "نص الكلام الأصلي المنطوق بالتفصيل",
+  "patient_age": 65,
+  "patient_sex": "female",
+  "chronic_conditions": ["Hypertension"],
+  "medications": [
+    {
+      "brand_name": "Cataflam",
+      "active_ingredient": "Diclofenac Potassium",
+      "drug_class": "NSAID",
+      "dosage": "50mg",
+      "duration_days": 60,
+      "frequency": "daily"
+    }
+  ],
+  "symptoms": [
+    {
+      "symptom_Arabic": "وجع في الذراع وهمدان",
+      "clinical_term_English": "Unexplained upper limb / arm pain and generalized fatigue",
+      "duration_days": 2,
+      "severity": "moderate",
+      "is_systemic_or_vague": true
+    }
+  ],
+  "missing_critical_info": false,
+  "clarification_question_ar": null
+}
 """
 
 ARABIC_DURATION_PATTERNS = [
@@ -350,10 +380,25 @@ class MultimodalIntakePipeline:
                 raise ValueError("لا يوجد نص مستخرج في استجابة النموذج (Candidate parts[0].text is empty)")
 
             raw_json = parts[0].text.strip()
+            if raw_json.startswith("```json"):
+                raw_json = raw_json[7:]
+            elif raw_json.startswith("```"):
+                raw_json = raw_json[3:]
+            if raw_json.endswith("```"):
+                raw_json = raw_json[:-3]
+            raw_json = raw_json.strip()
+
             llm_schema = ClinicalIntakeSchema.model_validate_json(raw_json)
 
             if not llm_schema.raw_transcript_or_notes or len(llm_schema.raw_transcript_or_notes.strip()) < 3:
-                raise ValueError("لم يتم التعرف على أي كلمات عربية في التسجيل الصوتي")
+                if llm_schema.symptoms or llm_schema.medications:
+                    extracted_summary = " ".join(
+                        [m.brand_name for m in llm_schema.medications]
+                        + [s.symptom_Arabic for s in llm_schema.symptoms]
+                    )
+                    llm_schema.raw_transcript_or_notes = f"[تسجيل صوتي مستخرج: {extracted_summary}]"
+                else:
+                    raise ValueError("لم يتم التعرف على أي كلمات عربية في التسجيل الصوتي")
 
             # Enrich with deterministic NLU
             det = self._deterministic_egyptian_nlu_parse(llm_schema.raw_transcript_or_notes)
@@ -436,7 +481,16 @@ class MultimodalIntakePipeline:
             if not parts or not getattr(parts[0], "text", None):
                 raise ValueError("لا يوجد نص مستخرج من تحليل الصورة")
 
-            llm_schema = ClinicalIntakeSchema.model_validate_json(parts[0].text.strip())
+            img_text = parts[0].text.strip()
+            if img_text.startswith("```json"):
+                img_text = img_text[7:]
+            elif img_text.startswith("```"):
+                img_text = img_text[3:]
+            if img_text.endswith("```"):
+                img_text = img_text[:-3]
+            img_text = img_text.strip()
+
+            llm_schema = ClinicalIntakeSchema.model_validate_json(img_text)
             if caption:
                 cap_det = self._deterministic_egyptian_nlu_parse(caption)
                 from app.database.db import merge_clinical_intake

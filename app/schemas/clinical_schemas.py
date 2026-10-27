@@ -3,7 +3,7 @@
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class DrugClass(str, Enum):
@@ -109,8 +109,8 @@ class ExtractedMedication(BaseModel):
 
 
 class ExtractedSymptom(BaseModel):
-    symptom_Arabic: str
-    clinical_term_English: str
+    symptom_Arabic: str = "عرض غير محدد"
+    clinical_term_English: str = "Unspecified symptom"
     duration_days: Optional[int] = None
     severity: SymptomSeverity = SymptomSeverity.MODERATE
     is_systemic_or_vague: bool = True
@@ -125,6 +125,85 @@ class ClinicalIntakeSchema(BaseModel):
     missing_critical_info: bool = False
     clarification_question_ar: Optional[str] = None
     raw_transcript_or_notes: Optional[str] = None
+
+    @field_validator("patient_age", mode="before")
+    @classmethod
+    def normalize_patient_age(cls, v):
+        if v is None:
+            return None
+        if isinstance(v, int):
+            return v
+        if isinstance(v, str):
+            import re
+            digits = re.findall(r"\d+", v)
+            return int(digits[0]) if digits else None
+        return None
+
+    @field_validator("symptoms", mode="before")
+    @classmethod
+    def normalize_symptoms(cls, v):
+        if not v:
+            return []
+        normalized = []
+        for item in v:
+            if isinstance(item, str):
+                normalized.append({
+                    "symptom_Arabic": item,
+                    "clinical_term_English": item,
+                    "severity": "moderate",
+                    "is_systemic_or_vague": True,
+                })
+            elif isinstance(item, dict):
+                ar = item.get("symptom_Arabic") or item.get("clinical_term_English") or item.get("name") or "عرض غير محدد"
+                en = item.get("clinical_term_English") or item.get("symptom_Arabic") or item.get("name") or "Unspecified symptom"
+                item_copy = dict(item)
+                item_copy["symptom_Arabic"] = ar
+                item_copy["clinical_term_English"] = en
+                normalized.append(item_copy)
+            else:
+                normalized.append(item)
+        return normalized
+
+    @field_validator("medications", mode="before")
+    @classmethod
+    def normalize_medications(cls, v):
+        if not v:
+            return []
+        normalized = []
+        for item in v:
+            if isinstance(item, str):
+                normalized.append({
+                    "brand_name": item,
+                    "drug_class": "OTHER",
+                })
+            elif isinstance(item, dict):
+                item_copy = dict(item)
+                brand = item_copy.get("brand_name") or item_copy.get("name") or item_copy.get("medication") or item_copy.get("active_ingredient") or "دواء غير محدد"
+                item_copy["brand_name"] = brand
+                dur = item_copy.get("duration_days")
+                if isinstance(dur, str):
+                    import re
+                    digits = re.findall(r"\d+", dur)
+                    item_copy["duration_days"] = int(digits[0]) if digits else None
+                normalized.append(item_copy)
+            else:
+                normalized.append(item)
+        return normalized
+
+    @field_validator("chronic_conditions", mode="before")
+    @classmethod
+    def normalize_chronic_conditions(cls, v):
+        if not v:
+            return []
+        normalized = []
+        for item in v:
+            if isinstance(item, str):
+                normalized.append(item)
+            elif isinstance(item, dict):
+                normalized.append(item.get("name") or item.get("condition") or str(item))
+            else:
+                normalized.append(str(item))
+        return normalized
 
 
 class TriggeredRuleAlert(BaseModel):
