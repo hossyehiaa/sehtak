@@ -47,6 +47,10 @@ class Settings(BaseSettings):
     EMBEDDING_MODEL_NAME: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     RERANKER_MODEL_NAME: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
+    # Live Medical Search Agent
+    ENABLE_LIVE_WEB_SEARCH: bool = True
+    TAVILY_API_KEY: str = ""
+
     # Telegram Bot
     TELEGRAM_BOT_TOKEN: str = ""
     ENABLE_TELEGRAM_POLLING: bool = False

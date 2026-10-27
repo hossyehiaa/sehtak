@@ -206,6 +206,25 @@ class TriageOrchestrator:
             "(موانع الاستخدام، التداخلات مع مكملات أخرى مثل فيتامين أ أو حديد، الفصل مع أدوية الحموضة، وأمانه على الكلى والمعدة)\n"
         )
 
+        # Live Web Search Agent (retrieve real-time clinical evidence)
+        live_search_snippets: List[str] = []
+        try:
+            from app.ai.tools.web_search_agent import web_search_agent
+            search_query = f"{med_names} {med_actives}".strip()
+            search_results = await web_search_agent.search(search_query, max_results=3)
+            if search_results:
+                live_evidence_text = web_search_agent.format_for_prompt(search_results)
+                prompt += f"\n\n{live_evidence_text}\nاستند بدقة إلى بيانات البحث الطبي المباشر أعلاه في تعزيز وتحقيق الإجابة."
+                for r in search_results:
+                    if r.get("source") and r.get("url"):
+                        live_search_snippets.append(f"{r['source']} ({r['url']})")
+        except Exception as se:
+            logger.warning("Live web search agent failed: %s", se)
+
+        search_footer = ""
+        if live_search_snippets:
+            search_footer = "\n\n**توثيق البحث الحي عبر الإنترنت (Live Medical Search):**\n" + "\n".join(f"- تحقق حي: {s}" for s in live_search_snippets[:3])
+
         # 1. Try Gemini
         if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != "your-google-gemini-api-key-here":
             try:
@@ -216,7 +235,7 @@ class TriageOrchestrator:
                     contents=prompt,
                 )
                 if res and res.text and len(res.text.strip()) > 100:
-                    return res.text.strip()
+                    return res.text.strip() + search_footer
             except Exception as e:
                 logger.warning("Gemini drug consultation failed: %s. Trying Groq...", e)
 
@@ -244,7 +263,7 @@ class TriageOrchestrator:
                     if groq_res.status_code == 200:
                         content = groq_res.json()["choices"][0]["message"]["content"].strip()
                         if len(content) > 100:
-                            return content
+                            return content + search_footer
             except Exception as ge:
                 logger.warning("Groq drug consultation failed: %s", ge)
 

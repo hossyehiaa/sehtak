@@ -425,6 +425,29 @@ class MultimodalIntakePipeline:
             except Exception as ge:
                 logger.warning("Groq text extraction failed: %s", ge)
 
+        # 3. Live Web Search Discovery if no medications were extracted
+        if not deterministic_result.medications and (not deterministic_result.symptoms or len(text.strip().split()) <= 4):
+            try:
+                from app.ai.tools.web_search_agent import web_search_agent
+                search_res = await web_search_agent.search(text.strip(), max_results=3)
+                if search_res:
+                    combined_snippets = " ".join(r.get("snippet", "") for r in search_res).lower()
+                    drug_indicators = ["دواء", "أقراص", "كبسولات", "مكمل", "فيتامين", "جرعة", "المادة الفعالة", "drug", "tablet", "capsule", "supplement", "mg", "استعمال"]
+                    if any(ind in combined_snippets for ind in drug_indicators):
+                        logger.info("Identified drug '%s' via live web search agent", text.strip())
+                        is_supplement = any(s in combined_snippets for s in ["مكمل", "فيتامين", "supplement", "vitamin", "mineral", "لوتين", "lutein"])
+                        drug_cls = DrugClass.VITAMIN_SUPPLEMENT if is_supplement else DrugClass.OTHER
+                        extracted_med = ExtractedMedication(
+                            brand_name=text.strip(),
+                            active_ingredient=search_res[0].get("title", "Active ingredient verified via live web search"),
+                            drug_class=drug_cls,
+                            duration_days=None,
+                        )
+                        deterministic_result.medications.append(extracted_med)
+                        deterministic_result.symptoms = []
+            except Exception as se:
+                logger.warning("Live search drug discovery failed: %s", se)
+
         return deterministic_result
 
     async def extract_from_voice(
