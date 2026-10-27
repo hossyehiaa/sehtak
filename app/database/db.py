@@ -290,7 +290,7 @@ async def save_patient_intake_session(
 
 
 async def list_user_sessions(user_id: int) -> List[Dict]:
-    """Returns past triage sessions owned by the authenticated user."""
+    """Returns past triage sessions owned by the authenticated user with clinical summary."""
     async with AsyncSessionLocal() as db:
         result = await db.execute(
             select(PatientSessionModel)
@@ -298,14 +298,24 @@ async def list_user_sessions(user_id: int) -> List[Dict]:
             .order_by(PatientSessionModel.updated_at.desc())
         )
         rows = result.scalars().all()
-        return [
-            {
+        sessions_out = []
+        for r in rows:
+            intake_data = {}
+            if r.intake_json:
+                try:
+                    intake_data = json.loads(r.intake_json)
+                except Exception:
+                    pass
+            symptoms = [s.get("symptom_Arabic") for s in intake_data.get("symptoms", []) if s.get("symptom_Arabic")]
+            medications = [m.get("brand_name") for m in intake_data.get("medications", []) if m.get("brand_name")]
+            sessions_out.append({
                 "session_id": r.session_id,
                 "channel": r.channel,
                 "last_status": r.last_status,
                 "updated_at": r.updated_at.isoformat() if r.updated_at else None,
                 "pdf_report_path": r.pdf_report_path,
                 "pdf_report_path_ar": r.pdf_report_path_ar,
-            }
-            for r in rows
-        ]
+                "symptoms": symptoms,
+                "medications": medications,
+            })
+        return sessions_out
