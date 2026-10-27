@@ -32,7 +32,7 @@ from app.auth.security import get_current_user_optional
 from app.bot.telegram_bot import create_telegram_bot_and_dispatcher
 from app.bot.whatsapp_webhook import whatsapp_router
 from app.config import settings
-from app.database.db import AsyncSessionLocal, UserModel, get_patient_intake_session, init_db, reset_patient_session
+from app.database.db import AsyncSessionLocal, UserModel, ensure_db_ready, get_patient_intake_session, init_db, reset_patient_session
 from app.database.egyptian_drugs_seed import EGYPTIAN_DRUG_KNOWLEDGE_BASE
 from app.medical_engine.triage_orchestrator import triage_orchestrator
 from app.schemas.clinical_schemas import ComponentDegradation, TriageAnalyzeRequest, TriageOrchestratorResult
@@ -49,7 +49,7 @@ telegram_bot, telegram_dp = create_telegram_bot_and_dispatcher()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Initializing Sehtak AI Database & Egyptian Drug Knowledge Base...")
-    await init_db()
+    await ensure_db_ready()
 
     polling_task: Optional[asyncio.Task] = None
     if settings.ENABLE_TELEGRAM_POLLING and telegram_bot is not None:
@@ -93,7 +93,7 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def serve_web_ui() -> HTMLResponse:
-    await init_db()
+    await ensure_db_ready()
     index_file = STATIC_DIR / "index.html"
     if index_file.exists():
         return HTMLResponse(content=index_file.read_text(encoding="utf-8"), status_code=200)

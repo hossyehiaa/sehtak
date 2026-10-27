@@ -68,38 +68,67 @@ class DrugCatalogModel(Base):
     clinical_notes = Column(Text, nullable=True)
 
 
-engine = create_async_engine(settings.DATABASE_URL, echo=False, future=True)
+import asyncio
+import logging
+
+logger = logging.getLogger("sehtak_ai.db")
+
+_connect_args = {}
+if "postgresql" in settings.DATABASE_URL:
+    _connect_args["statement_cache_size"] = 0
+
+engine = create_async_engine(settings.DATABASE_URL, echo=False, future=True, connect_args=_connect_args)
 AsyncSessionLocal = async_sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
 
 # Fast in-memory fallback cache synced with DB
 _MEMORY_SESSION_CACHE: Dict[str, ClinicalIntakeSchema] = {}
 _MEMORY_HISTORY_CACHE: Dict[str, list[str]] = {}
+_DB_INITIALIZED = False
+_DB_LOCK = asyncio.Lock()
 
 
 async def init_db() -> None:
     """Initializes database schema and seeds the Egyptian Drug Knowledge Base."""
     from app.database.egyptian_drugs_seed import EGYPTIAN_DRUG_KNOWLEDGE_BASE
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    except Exception as e:
+        logger.warning(f"Note on Base.metadata.create_all: {e}")
 
-    async with AsyncSessionLocal() as session:
-        result = await session.execute(select(DrugCatalogModel).limit(1))
-        existing = result.scalar_one_or_none()
-        if not existing:
-            for rec in EGYPTIAN_DRUG_KNOWLEDGE_BASE:
-                session.add(
-                    DrugCatalogModel(
-                        canonical_brand=rec.canonical_brand,
-                        active_ingredient=rec.active_ingredient,
-                        drug_class=rec.drug_class.value,
-                        aliases_json=json.dumps(rec.aliases_en_ar, ensure_ascii=False),
-                        nephrotoxic_risk=1 if rec.nephrotoxic_risk else 0,
-                        gi_bleed_risk=1 if rec.gi_bleed_risk else 0,
-                        clinical_notes=rec.clinical_notes,
+    try:
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(select(DrugCatalogModel).limit(1))
+            existing = result.scalar_one_or_none()
+            if not existing:
+                for rec in EGYPTIAN_DRUG_KNOWLEDGE_BASE:
+                    session.add(
+                        DrugCatalogModel(
+                            canonical_brand=rec.canonical_brand,
+                            active_ingredient=rec.active_ingredient,
+                            drug_class=rec.drug_class.value,
+                            aliases_json=json.dumps(rec.aliases_en_ar, ensure_ascii=False),
+                            nephrotoxic_risk=1 if rec.nephrotoxic_risk else 0,
+                            gi_bleed_risk=1 if rec.gi_bleed_risk else 0,
+                            clinical_notes=rec.clinical_notes,
+                        )
                     )
-                )
-            await session.commit()
+                await session.commit()
+    except Exception as e:
+        logger.warning(f"Note on drug catalog seeding: {e}")
+
+
+async def ensure_db_ready() -> None:
+    """Idempotently guarantees that DB tables and catalog exist across serverless cold starts."""
+    global _DB_INITIALIZED
+    if _DB_INITIALIZED:
+        return
+    async with _DB_LOCK:
+        if _DB_INITIALIZED:
+            return
+        await init_db()
+        _DB_INITIALIZED = True
 
 
 async def get_patient_intake_session(session_id: str) -> ClinicalIntakeSchema:

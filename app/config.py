@@ -9,7 +9,25 @@ if _ENV_PATH.exists():
     load_dotenv(dotenv_path=_ENV_PATH)
 
 IS_VERCEL = os.environ.get("VERCEL") == "1" or not os.access(Path(__file__).resolve().parent.parent, os.W_OK)
-DEFAULT_DB_URL = "sqlite+aiosqlite:////tmp/sehtak_ai.db" if IS_VERCEL else "sqlite+aiosqlite:///./sehtak_ai.db"
+
+
+def normalize_db_url(raw_url: str | None) -> str:
+    """Normalizes PostgreSQL and SQLite URLs for SQLAlchemy AsyncIO compatibility."""
+    if not raw_url:
+        return ""
+    url = raw_url.strip()
+    if url.startswith("postgres://"):
+        url = "postgresql+asyncpg://" + url[len("postgres://"):]
+    elif url.startswith("postgresql://") and not url.startswith("postgresql+"):
+        url = "postgresql+asyncpg://" + url[len("postgresql://"):]
+
+    if "postgresql+asyncpg://" in url:
+        url = url.replace("sslmode=require", "ssl=require")
+    return url
+
+
+_ENV_DB_URL = normalize_db_url(os.environ.get("POSTGRES_URL") or os.environ.get("DATABASE_URL"))
+DEFAULT_DB_URL = _ENV_DB_URL or ("sqlite+aiosqlite:////tmp/sehtak_ai.db" if IS_VERCEL else "sqlite+aiosqlite:///./sehtak_ai.db")
 DEFAULT_REPORTS_DIR = Path("/tmp/generated_reports") if IS_VERCEL else (Path(__file__).resolve().parent.parent / "generated_reports")
 DEFAULT_CHROMA_DIR = "/tmp/chroma_db" if IS_VERCEL else "./data/vector_db"
 
@@ -72,6 +90,10 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+normalized_db = normalize_db_url(os.environ.get("POSTGRES_URL") or os.environ.get("DATABASE_URL") or settings.DATABASE_URL)
+if normalized_db:
+    settings.DATABASE_URL = normalized_db
+
 if IS_VERCEL and settings.DATABASE_URL.startswith("sqlite+aiosqlite:///./"):
     settings.DATABASE_URL = "sqlite+aiosqlite:////tmp/sehtak_ai.db"
     settings.REPORTS_OUTPUT_DIR = Path("/tmp/generated_reports")

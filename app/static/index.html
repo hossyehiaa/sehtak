@@ -3025,17 +3025,35 @@
       }
     }
 
+    function quickSwitchToSignup(email, password) {
+      switchAuthTab('signup');
+      if (email) document.getElementById('signupEmail').value = email;
+      if (password) document.getElementById('signupPassword').value = password;
+      const fullNameEl = document.getElementById('signupFullName');
+      fullNameEl.focus();
+      const alertEl = document.getElementById('signupAlert');
+      alertEl.className = "auth-alert";
+      alertEl.style.display = "block";
+      alertEl.style.background = "rgba(13, 148, 136, 0.12)";
+      alertEl.style.borderColor = "var(--teal-500)";
+      alertEl.style.color = "var(--teal-300)";
+      alertEl.textContent = (currentLang === 'ar')
+        ? "يرجى إدخال اسمك فقط لإتمام تفعيل وحفظ حسابك الدائم بقاعدة البيانات."
+        : "Please enter your full name to complete your permanent account registration.";
+    }
+
     async function handleLoginSubmit(e) {
       e.preventDefault();
-      const email = document.getElementById("loginEmail").value.trim();
+      const email = document.getElementById("loginEmail").value.trim().toLowerCase();
       const password = document.getElementById("loginPassword").value;
       const alertEl = document.getElementById("loginAlert");
       const btn = document.getElementById("loginSubmitBtn");
 
       alertEl.className = "auth-alert";
       alertEl.textContent = "";
+      alertEl.style.display = "none";
       btn.disabled = true;
-      btn.textContent = "جاري التحقق وتأكيد الدخول...";
+      btn.textContent = (currentLang === "ar") ? "جاري التحقق وتأكيد الدخول..." : "Verifying credentials...";
 
       try {
         const resp = await fetch("/api/v1/auth/login", {
@@ -3046,7 +3064,20 @@
         const data = await resp.json();
         if (!resp.ok) {
           alertEl.className = "auth-alert error";
-          alertEl.textContent = data.detail || "بيانات الدخول غير صحيحة، يرجى المحاولة ثانية.";
+          alertEl.style.display = "block";
+          const isAr = (currentLang === "ar");
+          if (resp.status === 404) {
+            alertEl.innerHTML = `
+              <div style="font-weight: 600;">${data.detail || (isAr ? "هذا الحساب غير مسجل بعد في قاعدة البيانات." : "Account not found in the database.")}</div>
+              <div style="margin-top: 10px;">
+                <button type="button" onclick="quickSwitchToSignup('${email}', '${password}')" style="background: var(--teal-600); color: #fff; border: none; font-weight: 600; padding: 7px 14px; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+                  <span>${isAr ? "إنشاء الحساب وتفعيله فوراً ببياناتك" : "Register and activate account now"}</span>
+                </button>
+              </div>
+            `;
+          } else {
+            alertEl.textContent = data.detail || (isAr ? "بيانات الدخول غير صحيحة، يرجى إعادة المحاولة." : "Invalid login credentials.");
+          }
           return;
         }
 
@@ -3059,17 +3090,18 @@
         if (typeof loadPatientRecords === "function") loadPatientRecords();
       } catch (err) {
         alertEl.className = "auth-alert error";
-        alertEl.textContent = "تعذر الاتصال بالخادم، يرجى المحاولة لاحقاً.";
+        alertEl.style.display = "block";
+        alertEl.textContent = (currentLang === "ar") ? "تعذر الاتصال بالخادم، يرجى المحاولة لاحقاً." : "Server connection error, please try again.";
       } finally {
         btn.disabled = false;
-        btn.textContent = "تسجيل الدخول";
+        btn.textContent = (currentLang === "ar") ? "تسجيل الدخول" : "Sign In";
       }
     }
 
     async function handleSignupSubmit(e) {
       e.preventDefault();
       const fullName = document.getElementById("signupFullName").value.trim();
-      const email = document.getElementById("signupEmail").value.trim();
+      const email = document.getElementById("signupEmail").value.trim().toLowerCase();
       const phone = document.getElementById("signupPhone").value.trim() || null;
       const role = document.getElementById("signupRole").value;
       const password = document.getElementById("signupPassword").value;
@@ -3078,8 +3110,9 @@
 
       alertEl.className = "auth-alert";
       alertEl.textContent = "";
+      alertEl.style.display = "none";
       btn.disabled = true;
-      btn.textContent = "جاري إنشاء الحساب وتفعيله...";
+      btn.textContent = (currentLang === "ar") ? "جاري حفظ وتفعيل الحساب الدائم..." : "Registering permanent account...";
 
       try {
         const resp = await fetch("/api/v1/auth/signup", {
@@ -3096,7 +3129,8 @@
         const data = await resp.json();
         if (!resp.ok) {
           alertEl.className = "auth-alert error";
-          alertEl.textContent = data.detail || "تعذر إنشاء الحساب، قد يكون البريد الإلكتروني مسجلاً مسبقاً.";
+          alertEl.style.display = "block";
+          alertEl.textContent = data.detail || ((currentLang === "ar") ? "تعذر إنشاء الحساب، قد يكون البريد الإلكتروني مسجلاً مسبقاً." : "Registration failed.");
           return;
         }
 
@@ -3109,10 +3143,11 @@
         if (typeof loadPatientRecords === "function") loadPatientRecords();
       } catch (err) {
         alertEl.className = "auth-alert error";
-        alertEl.textContent = "تعذر الاتصال بالخادم، يرجى المحاولة لاحقاً.";
+        alertEl.style.display = "block";
+        alertEl.textContent = (currentLang === "ar") ? "تعذر الاتصال بالخادم، يرجى المحاولة لاحقاً." : "Server connection error.";
       } finally {
         btn.disabled = false;
-        btn.textContent = "إنشاء الحساب وبدء الاستخدام";
+        btn.textContent = (currentLang === "ar") ? "إنشاء الحساب وبدء الاستخدام" : "Create Account & Start";
       }
     }
 

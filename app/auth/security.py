@@ -12,7 +12,7 @@ import jwt
 from sqlalchemy import select
 
 from app.config import settings
-from app.database.db import AsyncSessionLocal, UserModel
+from app.database.db import AsyncSessionLocal, UserModel, ensure_db_ready
 from app.schemas.clinical_schemas import UserProfileResponse
 
 ph = PasswordHasher()
@@ -91,6 +91,7 @@ async def get_current_user_optional(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type")
     user_id = int(payload.get("sub", 0))
 
+    await ensure_db_ready()
     async with AsyncSessionLocal() as db:
         result = await db.execute(select(UserModel).where(UserModel.id == user_id))
         user = result.scalar_one_or_none()

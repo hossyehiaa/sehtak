@@ -15,7 +15,7 @@ from app.auth.security import (
     verify_password,
 )
 from app.config import settings
-from app.database.db import AsyncSessionLocal, UserModel, list_user_sessions
+from app.database.db import AsyncSessionLocal, UserModel, ensure_db_ready, list_user_sessions
 from app.schemas.clinical_schemas import (
     RefreshTokenRequest,
     TokenResponse,
@@ -30,13 +30,14 @@ session_router = APIRouter(prefix="/api/v1/sessions", tags=["User Sessions"])
 
 @auth_router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def signup_user(payload: UserSignupRequest):
+    await ensure_db_ready()
     async with AsyncSessionLocal() as db:
         # Check duplicate email
         existing = await db.execute(select(UserModel).where(UserModel.email == payload.email.lower().strip()))
         if existing.scalar_one_or_none():
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="A user with this email address already exists.",
+                detail="البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول أو استخدام بريد آخر.",
             )
 
         hashed = hash_password(payload.password)
@@ -63,14 +64,20 @@ async def signup_user(payload: UserSignupRequest):
 @auth_router.post("/login", response_model=TokenResponse)
 async def login_user(payload: UserLoginRequest, request: Request):
     check_login_rate_limit(request)
+    await ensure_db_ready()
 
     async with AsyncSessionLocal() as db:
         result = await db.execute(select(UserModel).where(UserModel.email == payload.email.lower().strip()))
         user = result.scalar_one_or_none()
-        if not user or not verify_password(payload.password, user.password_hash):
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="هذا الحساب غير مسجل بعد في قاعدة البيانات. يمكنك الضغط على 'إنشاء حساب جديد' للتسجيل فوراً.",
+            )
+        if not verify_password(payload.password, user.password_hash):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid email or password.",
+                detail="كلمة المرور غير صحيحة، يرجى إعادة المحاولة.",
             )
 
         access_token = create_access_token(user.id, user.email, user.role)
@@ -84,6 +91,7 @@ async def login_user(payload: UserLoginRequest, request: Request):
 
 @auth_router.post("/refresh", response_model=TokenResponse)
 async def refresh_access_token(payload: RefreshTokenRequest):
+    await ensure_db_ready()
     decoded = decode_token(payload.refresh_token)
     if decoded.get("type") != "refresh":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
