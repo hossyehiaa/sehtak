@@ -176,7 +176,34 @@ class TriageOrchestrator:
                 if res and res.text and len(res.text.strip()) > 80:
                     return res.text.strip()
             except Exception as e:
-                logger.warning("Gemini dynamic symptom triage failed, using clinical fallback: %s", e)
+                logger.warning("Gemini dynamic symptom triage failed, trying Groq fallback: %s", e)
+
+        # Fallback to Groq LLM if Gemini failed and GROQ_API_KEY is available
+        if settings.GROQ_API_KEY:
+            try:
+                import httpx
+                async with httpx.AsyncClient(timeout=30.0) as http_client:
+                    groq_res = await http_client.post(
+                        "https://api.groq.com/openai/v1/chat/completions",
+                        headers={"Authorization": f"Bearer {settings.GROQ_API_KEY}"},
+                        json={
+                            "model": settings.GROQ_LLM_MODEL or "qwen/qwen3.8-27b",
+                            "messages": [
+                                {
+                                    "role": "system",
+                                    "content": "أنت «صحتك AI» - نظام الفرز الطبي واليقظة الدوائية في مصر. أجب بالعربية المصرية الطبية الرصينة بدون أي إيموجيز نهائياً.",
+                                },
+                                {"role": "user", "content": prompt},
+                            ],
+                            "temperature": 0.2,
+                        },
+                    )
+                    if groq_res.status_code == 200:
+                        content = groq_res.json()["choices"][0]["message"]["content"].strip()
+                        if len(content) > 80:
+                            return content
+            except Exception as ge:
+                logger.warning("Groq symptom triage fallback failed: %s", ge)
 
         # Fallback Deterministic Clinical Generation
         is_resp = any(

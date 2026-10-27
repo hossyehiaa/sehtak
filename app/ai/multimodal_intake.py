@@ -8,6 +8,7 @@ import logging
 import re
 import traceback
 from typing import List, Optional
+import httpx
 from app.ai.errors import IntakeDegradationError
 from app.config import settings
 from app.database.egyptian_drugs_seed import (
@@ -283,10 +284,98 @@ class MultimodalIntakePipeline:
             raw_transcript_or_notes=text,
         )
 
+    async def _transcribe_with_groq_whisper(
+        self, audio_bytes: bytes, mime_type: str = "audio/ogg", filename_hint: str = ""
+    ) -> str:
+        """Transcribes Egyptian Arabic audio using Groq Whisper (whisper-large-v3)."""
+        groq_key = settings.GROQ_API_KEY
+        if not groq_key:
+            raise ValueError("GROQ_API_KEY is not configured")
+
+        ext = ".ogg"
+        if "wav" in mime_type.lower():
+            ext = ".wav"
+        elif "mp3" in mime_type.lower():
+            ext = ".mp3"
+        elif "m4a" in mime_type.lower() or "mp4" in mime_type.lower():
+            ext = ".m4a"
+        filename = filename_hint or f"voice_note{ext}"
+
+        files = {"file": (filename, audio_bytes, mime_type)}
+        data = {"model": settings.GROQ_WHISPER_MODEL or "whisper-large-v3", "language": "ar"}
+        headers = {"Authorization": f"Bearer {groq_key}"}
+
+        async with httpx.AsyncClient(timeout=35.0) as client:
+            resp = await client.post(
+                "https://api.groq.com/openai/v1/audio/transcriptions",
+                files=files,
+                data=data,
+                headers=headers,
+            )
+            if resp.status_code != 200:
+                raise ValueError(f"Groq Whisper HTTP {resp.status_code}: {resp.text}")
+            result_json = resp.json()
+            return result_json.get("text", "").strip()
+
+    async def _extract_with_groq_llm(self, text: str) -> Optional[ClinicalIntakeSchema]:
+        """Extracts structured schema using Groq LLM (e.g. qwen/qwen3.8-27b)."""
+        groq_key = settings.GROQ_API_KEY
+        if not groq_key:
+            return None
+
+        prompt = (
+            f"{SYSTEM_EXTRACTION_PROMPT}\n\n"
+            f"Patient/Caregiver Input:\n{text}\n\n"
+            "Respond ONLY with valid JSON conforming strictly to the requested ClinicalIntakeSchema. No conversational preamble."
+        )
+
+        headers = {
+            "Authorization": f"Bearer {groq_key}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "model": settings.GROQ_LLM_MODEL or "qwen/qwen3.8-27b",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a clinical NLP extractor for Egyptian Arabic medical consultations. Always reply with valid JSON only. Do not add markdown backticks.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            "response_format": {"type": "json_object"},
+            "temperature": 0.1,
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                resp = await client.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers=headers,
+                    json=payload,
+                )
+                if resp.status_code == 200:
+                    raw_content = resp.json()["choices"][0]["message"]["content"].strip()
+                    if raw_content.startswith("```json"):
+                        raw_content = raw_content[7:]
+                    elif raw_content.startswith("```"):
+                        raw_content = raw_content[3:]
+                    if raw_content.endswith("```"):
+                        raw_content = raw_content[:-3]
+                    schema = ClinicalIntakeSchema.model_validate_json(raw_content.strip())
+                    schema.raw_transcript_or_notes = text
+                    return schema
+                else:
+                    logger.warning("Groq LLM extraction HTTP %s: %s", resp.status_code, resp.text)
+                    return None
+        except Exception as e:
+            logger.warning("Groq LLM extraction exception: %s", e)
+            return None
+
     async def extract_from_text(self, text: str) -> ClinicalIntakeSchema:
-        """Extracts structured ClinicalIntakeSchema from text using Gemini 2.5 Flash with Egyptian NLU enrichment."""
+        """Extracts structured ClinicalIntakeSchema from text using Gemini / Groq with Egyptian NLU enrichment."""
         deterministic_result = self._deterministic_egyptian_nlu_parse(text)
 
+        # 1. Try Gemini
         if self._client is not None:
             try:
                 response = await self._client.aio.models.generate_content(
@@ -301,12 +390,29 @@ class MultimodalIntakePipeline:
                     ),
                 )
                 if response and hasattr(response, "text") and response.text:
-                    llm_schema = ClinicalIntakeSchema.model_validate_json(response.text)
+                    raw = response.text.strip()
+                    if raw.startswith("```json"):
+                        raw = raw[7:]
+                    elif raw.startswith("```"):
+                        raw = raw[3:]
+                    if raw.endswith("```"):
+                        raw = raw[:-3]
+                    llm_schema = ClinicalIntakeSchema.model_validate_json(raw.strip())
                     llm_schema.raw_transcript_or_notes = text
                     from app.database.db import merge_clinical_intake
                     return merge_clinical_intake(deterministic_result, llm_schema, text)
             except Exception as e:
-                logger.warning("Gemini text extraction failed, relying on deterministic Egyptian NLU: %s", e)
+                logger.warning("Gemini text extraction failed: %s. Trying Groq fallback...", e)
+
+        # 2. Try Groq LLM
+        if settings.GROQ_API_KEY:
+            try:
+                groq_schema = await self._extract_with_groq_llm(text)
+                if groq_schema:
+                    from app.database.db import merge_clinical_intake
+                    return merge_clinical_intake(deterministic_result, groq_schema, text)
+            except Exception as ge:
+                logger.warning("Groq text extraction failed: %s", ge)
 
         return deterministic_result
 
@@ -315,7 +421,9 @@ class MultimodalIntakePipeline:
     ) -> ClinicalIntakeSchema:
         """
         Transcribes Egyptian Arabic voice note and extracts ClinicalIntakeSchema.
-        INV-2: ZERO silent fallbacks! Raises IntakeDegradationError on ANY Gemini/transcription failure.
+        Tier 1: Gemini Multimodal Audio.
+        Tier 2: Groq Whisper (whisper-large-v3) + Groq LLM / Deterministic NLU.
+        INV-2: Raises IntakeDegradationError only if all audio transcription providers fail.
         """
         if not audio_bytes or len(audio_bytes) < 10:
             raise IntakeDegradationError(
@@ -333,85 +441,87 @@ class MultimodalIntakePipeline:
         elif "m4a" in mime_type.lower() or "mp4" in mime_type.lower():
             normalized_mime = "audio/mp4"
 
-        if self._client is None:
-            error_reason = "مفتاح خدمة الذكاء الاصطناعي (GEMINI_API_KEY) غير مهيأ"
-            logger.error("extract_from_voice failed: %s", error_reason)
-            raise IntakeDegradationError(
-                component="voice_transcription",
-                reason=error_reason,
-                user_message_ar=f"تحليل الصوت مش شغال حالياً (سبب: {error_reason}). اكتب الحالة نصاً وهحللها فوراً.",
-            )
+        last_error_reason = "لم يتم تهيئة أي محرك لتحليل الصوت"
+        last_exception = None
 
-        try:
-            audio_part = types.Part.from_bytes(data=audio_bytes, mime_type=normalized_mime)
-            response = await self._client.aio.models.generate_content(
-                model=self.model_name,
-                contents=[
-                    SYSTEM_EXTRACTION_PROMPT,
-                    "Listen carefully to this Egyptian Arabic voice note from a patient or caregiver. "
-                    "Transcribe it verbatim into `raw_transcript_or_notes` and extract all medications, durations, chronic conditions, and symptoms.",
-                    audio_part,
-                ],
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                    temperature=0.1,
-                ),
-            )
+        # 1. Attempt Gemini if client is ready
+        if self._client is not None:
+            try:
+                audio_part = types.Part.from_bytes(data=audio_bytes, mime_type=normalized_mime)
+                response = await self._client.aio.models.generate_content(
+                    model=self.model_name,
+                    contents=[
+                        SYSTEM_EXTRACTION_PROMPT,
+                        "Listen carefully to this Egyptian Arabic voice note from a patient or caregiver. "
+                        "Transcribe it verbatim into `raw_transcript_or_notes` and extract all medications, durations, chronic conditions, and symptoms.",
+                        audio_part,
+                    ],
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        temperature=0.1,
+                    ),
+                )
 
-            # Defensive parsing per Task 0.3
-            if not response or not hasattr(response, "candidates") or not response.candidates:
-                raise ValueError("استجابة فارغة من نموذج التحليل الصوتي (No candidates returned)")
+                if response and hasattr(response, "candidates") and response.candidates:
+                    first_candidate = response.candidates[0]
+                    if hasattr(first_candidate, "content") and first_candidate.content:
+                        parts = getattr(first_candidate.content, "parts", [])
+                        if parts and getattr(parts[0], "text", None):
+                            raw_json = parts[0].text.strip()
+                            if raw_json.startswith("```json"):
+                                raw_json = raw_json[7:]
+                            elif raw_json.startswith("```"):
+                                raw_json = raw_json[3:]
+                            if raw_json.endswith("```"):
+                                raw_json = raw_json[:-3]
+                            llm_schema = ClinicalIntakeSchema.model_validate_json(raw_json.strip())
 
-            first_candidate = response.candidates[0]
-            if not hasattr(first_candidate, "content") or not first_candidate.content:
-                raise ValueError("المحتوى فارغ في استجابة النموذج (Candidate content is empty)")
-
-            parts = getattr(first_candidate.content, "parts", [])
-            if not parts or not getattr(parts[0], "text", None):
-                raise ValueError("لا يوجد نص مستخرج في استجابة النموذج (Candidate parts[0].text is empty)")
-
-            raw_json = parts[0].text.strip()
-            if raw_json.startswith("```json"):
-                raw_json = raw_json[7:]
-            elif raw_json.startswith("```"):
-                raw_json = raw_json[3:]
-            if raw_json.endswith("```"):
-                raw_json = raw_json[:-3]
-            raw_json = raw_json.strip()
-
-            llm_schema = ClinicalIntakeSchema.model_validate_json(raw_json)
-
-            if not llm_schema.raw_transcript_or_notes or len(llm_schema.raw_transcript_or_notes.strip()) < 3:
-                if llm_schema.symptoms or llm_schema.medications:
-                    extracted_summary = " ".join(
-                        [m.brand_name for m in llm_schema.medications]
-                        + [s.symptom_Arabic for s in llm_schema.symptoms]
-                    )
-                    llm_schema.raw_transcript_or_notes = f"[تسجيل صوتي مستخرج: {extracted_summary}]"
+                            if llm_schema.raw_transcript_or_notes and len(llm_schema.raw_transcript_or_notes.strip()) >= 3:
+                                det = self._deterministic_egyptian_nlu_parse(llm_schema.raw_transcript_or_notes)
+                                from app.database.db import merge_clinical_intake
+                                return merge_clinical_intake(det, llm_schema)
+            except Exception as exc:
+                last_exception = exc
+                reason_str = str(exc)
+                if "quota" in reason_str.lower() or "429" in reason_str:
+                    last_error_reason = "تم تجاوز حد استخدام Gemini API (Quota Exceeded)"
                 else:
-                    raise ValueError("لم يتم التعرف على أي كلمات عربية في التسجيل الصوتي")
+                    last_error_reason = f"تعذر تفريغ الصوت عبر Gemini ({type(exc).__name__}: {exc})"
+                logger.warning("Gemini voice transcription failed (%s). Attempting Groq Whisper fallback...", last_error_reason)
 
-            # Enrich with deterministic NLU
-            det = self._deterministic_egyptian_nlu_parse(llm_schema.raw_transcript_or_notes)
-            from app.database.db import merge_clinical_intake
-            return merge_clinical_intake(det, llm_schema)
+        # 2. Seamless Groq Whisper Fallback (whisper-large-v3)
+        if settings.GROQ_API_KEY:
+            try:
+                logger.info("Calling Groq Whisper for Egyptian Arabic voice transcription...")
+                transcript = await self._transcribe_with_groq_whisper(
+                    audio_bytes, mime_type=normalized_mime, filename_hint=filename_hint
+                )
+                if transcript and len(transcript.strip()) >= 2:
+                    logger.info("Groq Whisper succeeded: %s", transcript)
+                    det = self._deterministic_egyptian_nlu_parse(transcript)
+                    groq_schema = None
+                    try:
+                        groq_schema = await self._extract_with_groq_llm(transcript)
+                    except Exception as ge:
+                        logger.warning("Groq LLM extraction after whisper failed: %s", ge)
 
-        except Exception as exc:
-            tb = traceback.format_exc()
-            logger.error("Gemini voice transcription failed with traceback:\n%s", tb)
-            reason_str = str(exc)
-            if "quota" in reason_str.lower() or "429" in reason_str:
-                reason_clean = "تم تجاوز حد استخدام Gemini API (Quota Exceeded)"
-            elif "permission" in reason_str.lower() or "403" in reason_str:
-                reason_clean = "خطأ في صلاحيات مفتاح API (Permission Denied)"
-            else:
-                reason_clean = f"تعذر تفريغ الصوت ({type(exc).__name__}: {exc})"
+                    from app.database.db import merge_clinical_intake
+                    if groq_schema:
+                        return merge_clinical_intake(det, groq_schema, transcript)
+                    return det
+            except Exception as groq_exc:
+                last_exception = groq_exc
+                last_error_reason = f"تعذر تفريغ الصوت عبر Groq Whisper ({groq_exc})"
+                logger.error("Groq Whisper voice fallback failed: %s", groq_exc)
 
-            raise IntakeDegradationError(
-                component="voice_transcription",
-                reason=reason_clean,
-                user_message_ar=f"تحليل الصوت مش شغال حالياً (سبب: {reason_clean}). اكتب الحالة نصاً وهحللها فوراً.",
-            ) from exc
+        # 3. If BOTH failed per INV-2, surface degradation error
+        tb = traceback.format_exc()
+        logger.error("All voice transcription engines failed. Traceback:\n%s", tb)
+        raise IntakeDegradationError(
+            component="voice_transcription",
+            reason=last_error_reason,
+            user_message_ar=f"تحليل الصوت مش شغال حالياً (سبب: {last_error_reason}). اكتب الحالة نصاً وهحللها فوراً.",
+        ) from last_exception
 
     async def extract_from_image(
         self,

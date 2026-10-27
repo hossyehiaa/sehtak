@@ -35,9 +35,11 @@ class Settings(BaseSettings):
 
     # AI Providers
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL_NAME: str = "gemini-2.5-flash"
+    GEMINI_MODEL_NAME: str = "gemini-3.5-flash"
     OPENAI_API_KEY: str = ""
     GROQ_API_KEY: str = ""
+    GROQ_LLM_MODEL: str = "qwen/qwen3.8-27b"
+    GROQ_WHISPER_MODEL: str = "whisper-large-v3"
 
     # RAG Grounding Configuration (Task 2)
     CHROMA_PERSIST_DIR: str = DEFAULT_CHROMA_DIR
