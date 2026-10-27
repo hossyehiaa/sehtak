@@ -1,0 +1,22 @@
+# Environments & Secrets
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Local Database & Generated PDFs
+*.db
+*.sqlite3
+generated_reports/
+
+# Vercel
+.vercel/
+.DS_Store
