@@ -1,0 +1,14 @@
+Kidney Disease: Improving Global Outcomes (KDIGO) Acute Kidney Injury Work Group
+KDIGO Clinical Practice Guideline for Acute Kidney Injury
+Section: Definition and Staging of Acute Kidney Injury (AKI) & Drug-Induced Nephrotoxicity
+Page: 19
+
+Acute kidney injury (AKI) is diagnosed by an increase in Serum Creatinine by 0.3 mg/dL within 48 hours, an increase in Serum Creatinine to 1.5 times baseline known or presumed to have occurred within the prior 7 days, or urine volume < 0.5 mL/kg/h for 6 hours.
+
+KDIGO Staging Criteria:
+- Stage 1: Serum creatinine 1.5–1.9 times baseline OR increase of >= 0.3 mg/dL; Urine output < 0.5 mL/kg/h for 6–12 hours.
+- Stage 2: Serum creatinine 2.0–2.9 times baseline; Urine output < 0.5 mL/kg/h for >= 12 hours.
+- Stage 3: Serum creatinine 3.0 times baseline OR increase to >= 4.0 mg/dL OR initiation of renal replacement therapy (RRT); Urine output < 0.3 mL/kg/h for >= 24 hours or anuria for >= 12 hours.
+
+Management of Suspected Drug-Induced AKI:
+We recommend that patients with suspected drug-induced AKI immediately discontinue all potential nephrotoxic agents, notably NSAIDs, aminoglycosides, and excessive diuretics. Discontinuation of offending medications is the primary therapeutic intervention preventing irreversible tubular necrosis. Stat laboratory evaluation must include Serum Creatinine, Blood Urea Nitrogen (BUN), estimated GFR (eGFR), serum potassium (K+), serum sodium (Na+), and complete urinalysis.

@@ -1,11 +1,11 @@
-"""SQLAlchemy Async database and stateful session store for Sehtak AI."""
+"""SQLAlchemy Async database models and stateful session store for Sehtak AI v2."""
 
 import json
 from datetime import datetime, timezone
-from typing import Dict, Optional
-from sqlalchemy import Column, DateTime, Integer, String, Text, select
+from typing import Dict, List, Optional
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, relationship
 
 from app.config import settings
 from app.schemas.clinical_schemas import (
@@ -17,6 +17,22 @@ from app.schemas.clinical_schemas import (
 Base = declarative_base()
 
 
+class UserModel(Base):
+    """Registered end-user accounts (Task 1)."""
+
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String(255), unique=True, index=True, nullable=False)
+    phone = Column(String(64), unique=True, index=True, nullable=True)
+    full_name = Column(String(255), nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    role = Column(String(32), default="caregiver", nullable=False)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    sessions = relationship("PatientSessionModel", back_populates="user", lazy="selectin")
+
+
 class PatientSessionModel(Base):
     """Persistent patient triage session stored in SQLite/PostgreSQL."""
 
@@ -24,11 +40,17 @@ class PatientSessionModel(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     session_id = Column(String(128), unique=True, index=True, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     channel = Column(String(32), default="telegram", nullable=False)
     intake_json = Column(Text, nullable=False, default="{}")
     conversation_history_json = Column(Text, nullable=False, default="[]")
     last_status = Column(String(64), default="active", nullable=False)
+    anonymous = Column(Integer, default=1, nullable=False)  # 1 for demo/anonymous, 0 for authenticated
+    pdf_report_path = Column(String(512), nullable=True)
+    pdf_report_path_ar = Column(String(512), nullable=True)
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    user = relationship("UserModel", back_populates="sessions", lazy="selectin")
 
 
 class DrugCatalogModel(Base):
@@ -49,7 +71,7 @@ class DrugCatalogModel(Base):
 engine = create_async_engine(settings.DATABASE_URL, echo=False, future=True)
 AsyncSessionLocal = async_sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
 
-# Fast in-memory fallback cache synced with SQLite for instant stateful access
+# Fast in-memory fallback cache synced with DB
 _MEMORY_SESSION_CACHE: Dict[str, ClinicalIntakeSchema] = {}
 _MEMORY_HISTORY_CACHE: Dict[str, list[str]] = {}
 
@@ -81,7 +103,6 @@ async def init_db() -> None:
 
 
 async def get_patient_intake_session(session_id: str) -> ClinicalIntakeSchema:
-    """Retrieves the current ClinicalIntakeSchema for a given user/patient session."""
     if session_id in _MEMORY_SESSION_CACHE:
         return _MEMORY_SESSION_CACHE[session_id]
 
@@ -103,13 +124,11 @@ async def get_patient_intake_session(session_id: str) -> ClinicalIntakeSchema:
 
 
 async def get_conversation_history(session_id: str) -> list[str]:
-    """Returns accumulated raw user messages for context continuity."""
     await get_patient_intake_session(session_id)
     return _MEMORY_HISTORY_CACHE.get(session_id, [])
 
 
 async def reset_patient_session(session_id: str) -> ClinicalIntakeSchema:
-    """Clears the patient session state to start a fresh medical triage."""
     fresh = ClinicalIntakeSchema()
     _MEMORY_SESSION_CACHE[session_id] = fresh
     _MEMORY_HISTORY_CACHE[session_id] = []
@@ -133,13 +152,11 @@ def merge_clinical_intake(
     incoming: ClinicalIntakeSchema,
     new_raw_note: Optional[str] = None,
 ) -> ClinicalIntakeSchema:
-    """Intelligently merges newly extracted medications, durations, and symptoms into the active session."""
     patient_age = incoming.patient_age or existing.patient_age
     patient_sex = incoming.patient_sex or existing.patient_sex
 
     chronic_set = list(dict.fromkeys(existing.chronic_conditions + incoming.chronic_conditions))
 
-    # Merge medications by brand_name or active_ingredient
     meds_by_key: Dict[str, ExtractedMedication] = {}
     for med in existing.medications:
         key = (med.brand_name or "").strip().lower()
@@ -147,7 +164,6 @@ def merge_clinical_intake(
 
     for inc_med in incoming.medications:
         key = (inc_med.brand_name or "").strip().lower()
-        # Check if incoming medication updates an existing one
         matched_key = None
         for existing_key, existing_med in meds_by_key.items():
             if (
@@ -176,15 +192,12 @@ def merge_clinical_intake(
         else:
             meds_by_key[key] = inc_med.model_copy(deep=True)
 
-    # If the user just replied with a duration (e.g., "بقاله شهرين" / 60 days) and incoming had a generic duration
-    # or we have an existing medication missing duration_days, propagate discovered duration if unambiguous
     incoming_durations = [m.duration_days for m in incoming.medications if m.duration_days is not None]
     if incoming_durations:
         for med in meds_by_key.values():
             if med.duration_days is None:
                 med.duration_days = incoming_durations[0]
 
-    # Merge symptoms
     symptoms_by_term: Dict[str, ExtractedSymptom] = {}
     for sym in existing.symptoms:
         symptoms_by_term[sym.clinical_term_English.lower()] = sym.model_copy(deep=True)
@@ -219,12 +232,16 @@ async def save_patient_intake_session(
     channel: str = "telegram",
     raw_user_message: Optional[str] = None,
     status: str = "active",
+    user_id: Optional[int] = None,
+    pdf_report_path: Optional[str] = None,
+    pdf_report_path_ar: Optional[str] = None,
 ) -> None:
-    """Persists updated ClinicalIntakeSchema to both memory cache and SQLite/PostgreSQL."""
     _MEMORY_SESSION_CACHE[session_id] = intake
     history = _MEMORY_HISTORY_CACHE.setdefault(session_id, [])
     if raw_user_message:
         history.append(raw_user_message)
+
+    is_anon = 0 if user_id is not None else 1
 
     async with AsyncSessionLocal() as db:
         result = await db.execute(
@@ -234,16 +251,49 @@ async def save_patient_intake_session(
         if not row:
             row = PatientSessionModel(
                 session_id=session_id,
+                user_id=user_id,
                 channel=channel,
                 intake_json=intake.model_dump_json(),
                 conversation_history_json=json.dumps(history, ensure_ascii=False),
                 last_status=status,
+                anonymous=is_anon,
+                pdf_report_path=pdf_report_path,
+                pdf_report_path_ar=pdf_report_path_ar,
                 updated_at=datetime.now(timezone.utc),
             )
             db.add(row)
         else:
+            if user_id is not None:
+                row.user_id = user_id
+                row.anonymous = 0
             row.intake_json = intake.model_dump_json()
             row.conversation_history_json = json.dumps(history, ensure_ascii=False)
             row.last_status = status
+            if pdf_report_path:
+                row.pdf_report_path = pdf_report_path
+            if pdf_report_path_ar:
+                row.pdf_report_path_ar = pdf_report_path_ar
             row.updated_at = datetime.now(timezone.utc)
         await db.commit()
+
+
+async def list_user_sessions(user_id: int) -> List[Dict]:
+    """Returns past triage sessions owned by the authenticated user."""
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(PatientSessionModel)
+            .where(PatientSessionModel.user_id == user_id)
+            .order_by(PatientSessionModel.updated_at.desc())
+        )
+        rows = result.scalars().all()
+        return [
+            {
+                "session_id": r.session_id,
+                "channel": r.channel,
+                "last_status": r.last_status,
+                "updated_at": r.updated_at.isoformat() if r.updated_at else None,
+                "pdf_report_path": r.pdf_report_path,
+                "pdf_report_path_ar": r.pdf_report_path_ar,
+            }
+            for r in rows
+        ]

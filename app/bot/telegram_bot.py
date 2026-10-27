@@ -102,14 +102,18 @@ async def photo_medication_handler(message: Message, bot: Bot) -> None:
     await bot.download_file(file_info.file_path, destination=buffer)
     image_bytes = buffer.getvalue()
 
-    result = await triage_orchestrator.handle_image_message(
-        session_id=session_id,
-        image_bytes=image_bytes,
-        mime_type="image/jpeg",
-        caption=message.caption,
-        channel="telegram",
-    )
-    await _dispatch_orchestrator_result(message, result)
+    try:
+        result = await triage_orchestrator.handle_image_message(
+            session_id=session_id,
+            image_bytes=image_bytes,
+            mime_type="image/jpeg",
+            caption=message.caption,
+            channel="telegram",
+        )
+        await _dispatch_orchestrator_result(message, result)
+    except Exception as exc:
+        logger.error("Telegram photo intake failed: %s", exc)
+        await message.answer("فحص الصورة مش شغال حالياً. اكتب اسم الدواء نصاً وهحلله فوراً.")
 
 
 @telegram_router.message(F.voice | F.audio)
@@ -124,13 +128,17 @@ async def voice_note_handler(message: Message, bot: Bot) -> None:
     audio_bytes = buffer.getvalue()
     mime_type = getattr(media, "mime_type", None) or "audio/ogg"
 
-    result = await triage_orchestrator.handle_voice_message(
-        session_id=session_id,
-        audio_bytes=audio_bytes,
-        mime_type=mime_type,
-        channel="telegram",
-    )
-    await _dispatch_orchestrator_result(message, result)
+    try:
+        result = await triage_orchestrator.handle_voice_message(
+            session_id=session_id,
+            audio_bytes=audio_bytes,
+            mime_type=mime_type,
+            channel="telegram",
+        )
+        await _dispatch_orchestrator_result(message, result)
+    except Exception as exc:
+        logger.error("Telegram voice intake failed: %s", exc)
+        await message.answer("تحليل الصوت مش شغال حالياً. اكتب الحالة نصاً وهحللها فوراً.")
 
 
 @telegram_router.message(F.text)

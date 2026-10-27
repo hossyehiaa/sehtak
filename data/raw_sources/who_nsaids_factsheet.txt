@@ -1,0 +1,10 @@
+WHO Fact Sheet on Non-Steroidal Anti-Inflammatory Drugs (NSAIDs) & Rational Prescribing
+Document: World Health Organization Guidelines on Analgesic Safety
+Section: Adverse Renal and Gastrointestinal Manifestations
+Page: 2
+
+Non-steroidal anti-inflammatory drugs (NSAIDs), including diclofenac, ketoprofen, and ibuprofen, are potent inhibitors of cyclooxygenase enzymes (COX-1 and COX-2). By suppressing renal prostaglandin E2 (PGE2) and prostacyclin (PGI2) synthesis, NSAIDs cause reversible afferent arteriolar vasoconstriction and a steep drop in glomerular filtration rate (GFR). 
+
+Continuous or unmonitored use of any NSAID beyond 7 consecutive days significantly elevates the risk of hemodynamic acute kidney injury, acute interstitial nephritis, and secondary volume overload. Vulnerable populations include older adults above 60 years of age, dehydrated individuals, and patients with pre-existing hypertension or congestive heart failure.
+
+Whenever a patient receiving chronic or frequent NSAIDs presents with constitutional or generalized symptoms such as persistent fatigue, malaise, upper limb pain, flank discomfort, nausea, or decreased urine volume, healthcare workers must immediately suspend NSAID therapy and obtain stat serum creatinine, blood urea nitrogen (BUN), and serum electrolyte measurements.

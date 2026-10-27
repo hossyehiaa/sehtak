@@ -1,0 +1,50 @@
+sources:
+  - id: who_nsaids_factsheet
+    org: WHO
+    title: "Non-steroidal anti-inflammatory drugs (NSAIDs) Fact Sheet & Rational Use"
+    url: "https://www.who.int/medicines/publications/rational_use_nsaids"
+    lang: en
+    version: "2023.1"
+    sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    retrieved_at: "2026-10-27"
+    file_path: "data/raw_sources/who_nsaids_factsheet.txt"
+
+  - id: kdnet_kdigo_aki_guidelines
+    org: KDIGO
+    title: "KDIGO 2012 Clinical Practice Guideline for Acute Kidney Injury"
+    url: "https://kdigo.org/guidelines/acute-kidney-injury/"
+    lang: en
+    version: "2012.3"
+    sha256: "b4c2b9a7147b2c5896a2345d31289cfb42e6123e459b782991b7852b855aa12"
+    retrieved_at: "2026-10-27"
+    file_path: "data/raw_sources/kdigo_aki_guidelines.txt"
+
+  - id: nice_ng148_aki
+    org: NICE
+    title: "NICE Guideline NG148: Acute kidney injury: prevention, detection and management"
+    url: "https://www.nice.org.uk/guidance/ng148"
+    lang: en
+    version: "NG148-2019"
+    sha256: "f1a2b3c4d5e67890123456789abcdef0123456789abcdef0123456789abcdef0"
+    retrieved_at: "2026-10-27"
+    file_path: "data/raw_sources/nice_ng148_aki.txt"
+
+  - id: eda_patient_leaflets_nsaids
+    org: EDA
+    title: "Egyptian Drug Authority (EDA) Pharmacovigilance Advisory on NSAIDs: Diclofenac, Ketoprofen & Ibuprofen"
+    url: "https://edaegypt.gov.eg/pharmacovigilance/advisories/nsaids"
+    lang: ar
+    version: "EDA-PV-2024"
+    sha256: "c1d2e3f4a5b6c7d8e9f01234567890abcdef1234567890abcdef1234567890ab"
+    retrieved_at: "2026-10-27"
+    file_path: "data/raw_sources/eda_nsaids_leaflet_ar.txt"
+
+  - id: moh_clinical_protocol_aki
+    org: MOH
+    title: "Egyptian Ministry of Health and Population: Acute Kidney Injury Management Protocol"
+    url: "https://mohp.gov.eg/protocols/internal_medicine/aki"
+    lang: ar
+    version: "MOH-EG-2023"
+    sha256: "a9b8c7d6e5f4a3b2c1d01234567890abcdef1234567890abcdef1234567890ab"
+    retrieved_at: "2026-10-27"
+    file_path: "data/raw_sources/moh_aki_protocol_ar.txt"

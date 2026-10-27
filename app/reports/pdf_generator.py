@@ -1,8 +1,8 @@
 """
 Module 4: Monochrome Emergency Triage Sheet Generator (`app/reports/pdf_generator.py`)
 Generates two distinct, high-contrast Monochrome (Black & White) 1-page PDF reports:
-1. Arabic Hospital Triage Report (`Emergency_Triage_Report_AR_<ID>.pdf`) — Formal Arabic medical triage sheet for Egyptian hospitals, attending physicians, and family.
-2. English Physician Triage Report (`Emergency_Triage_Report_EN_<ID>.pdf`) — Standard English 5-second clinical summary grounded in KDIGO / NICE AKI guidelines.
+1. Arabic Hospital Triage Report (`Emergency_Triage_Report_AR_<ID>.pdf`) with trusted evidence citations.
+2. English Physician Triage Report (`Emergency_Triage_Report_EN_<ID>.pdf`) with EVIDENCE BASIS block.
 """
 
 import os
@@ -42,7 +42,6 @@ CANDIDATE_BOLD_FONTS = [
 
 
 def shape_arabic_line(text: str) -> str:
-    """Shapes and reorders a single line of Arabic RTL text for FPDF rendering."""
     if not text:
         return ""
     if HAS_ARABIC_SHAPING:
@@ -55,10 +54,6 @@ def shape_arabic_line(text: str) -> str:
 
 
 def wrap_and_shape_arabic_paragraph(text: str, max_chars_per_line: int = 82) -> List[str]:
-    """
-    Splits an Arabic paragraph into wrapped lines BEFORE applying BiDi visual reordering,
-    preventing inverted line order in multi-line RTL paragraphs.
-    """
     if not text:
         return []
     visual_lines: List[str] = []
@@ -82,15 +77,12 @@ def wrap_and_shape_arabic_paragraph(text: str, max_chars_per_line: int = 82) -> 
 
 
 def find_unicode_fonts() -> Tuple[Optional[str], Optional[str]]:
-    """Returns (regular_ttf_path, bold_ttf_path) from bundled or system fonts."""
     reg = next((p for p in CANDIDATE_REGULAR_FONTS if os.path.exists(p)), None)
     bold = next((p for p in CANDIDATE_BOLD_FONTS if os.path.exists(p)), reg)
     return reg, bold
 
 
 class MonochromeTriagePDF(FPDF):
-    """Strict Black & White high-contrast ER Triage Summary sheet."""
-
     banner_title: str = "SEHTAK AI  |  EMERGENCY MEDICAL TRIAGE & DRUG SAFETY SUMMARY"
 
     def header(self) -> None:
@@ -111,8 +103,6 @@ class MonochromeTriagePDF(FPDF):
 
 
 class EmergencyPDFGenerator:
-    """Generates both Arabic (Hospital/Family) and English (ER Physician) Monochrome 1-Page Triage PDFs."""
-
     def __init__(self, output_dir: Optional[Path] = None) -> None:
         self.output_dir = Path(output_dir or settings.REPORTS_OUTPUT_DIR)
         os.makedirs(self.output_dir, exist_ok=True)
@@ -137,16 +127,12 @@ class EmergencyPDFGenerator:
         rule_eval: Optional[RuleEngineEvaluation] = None,
         filename: Optional[str] = None,
     ) -> str:
-        """
-        Generates the 1-page Monochrome English ER Physician Triage Summary PDF (`Emergency_Triage_Report_EN_<ID>.pdf`).
-        """
         pdf = MonochromeTriagePDF(orientation="P", unit="mm", format="A4")
         pdf.banner_title = "SEHTAK AI  |  EMERGENCY MEDICAL TRIAGE & DRUG SAFETY SUMMARY (ENGLISH)"
         pdf.set_auto_page_break(auto=True, margin=12)
         font_family, has_unicode_font = self._configure_pdf_fonts(pdf)
         pdf.add_page()
 
-        # Severity Badge & Metadata
         pdf.set_text_color(0, 0, 0)
         pdf.set_font(font_family, "B", 11)
         pdf.set_fill_color(230, 230, 230)
@@ -166,7 +152,6 @@ class EmergencyPDFGenerator:
         pdf.cell(95, 6, f"Timestamp: {physician_payload.generated_at_utc}", border="B", new_x="LMARGIN", new_y="NEXT", align="R")
         pdf.ln(3)
 
-        # Section 1: Demographics & Chief Complaint
         self._render_section_header(pdf, font_family, "1. PATIENT DEMOGRAPHICS & CHIEF COMPLAINT", align="L")
         pdf.set_font(font_family, "B", 9.5)
         pdf.multi_cell(0, 5.5, f"Patient Profile: {self._english_only(physician_payload.patient_demographics)}", new_x="LMARGIN", new_y="NEXT")
@@ -174,7 +159,6 @@ class EmergencyPDFGenerator:
         pdf.multi_cell(0, 5.5, f"Chief Complaint & Timeline: {self._english_only(physician_payload.chief_complaint_and_timeline)}", new_x="LMARGIN", new_y="NEXT")
         pdf.ln(2.5)
 
-        # Section 2: High-Risk Medication Exposure
         self._render_section_header(pdf, font_family, "2. HIGH-RISK MEDICATION EXPOSURE (PHARMACOVIGILANCE ALERT)", align="L")
         pdf.set_font(font_family, "B", 9.5)
         if physician_payload.high_risk_medication_exposure:
@@ -184,7 +168,6 @@ class EmergencyPDFGenerator:
             pdf.multi_cell(0, 5.5, "  No high-risk OTC/NSAID exposure explicitly confirmed.", new_x="LMARGIN", new_y="NEXT")
         pdf.ln(2.5)
 
-        # Section 3: Red-Flag Clinical Correlation
         self._render_section_header(pdf, font_family, "3. RED-FLAG CLINICAL CORRELATION & PATHOPHYSIOLOGY", align="L")
         pdf.set_font(font_family, "", 9.5)
         pdf.multi_cell(
@@ -197,17 +180,24 @@ class EmergencyPDFGenerator:
         )
         pdf.ln(2.5)
 
-        # Section 4: Recommended Immediate Workup
         self._render_section_header(pdf, font_family, "4. RECOMMENDED IMMEDIATE STAT WORKUP (KDIGO / NICE GUIDELINES)", align="L")
         pdf.set_font(font_family, "B", 9)
         for idx, item in enumerate(physician_payload.recommended_immediate_workup, start=1):
             clean_item = self._english_only(item)
             pdf.multi_cell(0, 5.2, f"  [ ] {idx}. {clean_item}", new_x="LMARGIN", new_y="NEXT")
-
         pdf.ln(2)
+
+        # Task 2.12: EVIDENCE BASIS Block
+        if physician_payload.evidence_basis:
+            self._render_section_header(pdf, font_family, "5. EVIDENCE BASIS (TRUSTED CLINICAL SOURCES)", align="L")
+            pdf.set_font(font_family, "", 8)
+            for ev in physician_payload.evidence_basis:
+                pdf.multi_cell(0, 4.5, f"  - {self._english_only(ev)}", new_x="LMARGIN", new_y="NEXT")
+            pdf.ln(2)
+
         pdf.set_font(font_family, "", 8)
         pdf.multi_cell(0, 4.5, f"Guideline Reference: {physician_payload.clinical_guidelines_reference}", new_x="LMARGIN", new_y="NEXT")
-        pdf.ln(4)
+        pdf.ln(3)
 
         pdf.set_font(font_family, "B", 8)
         pdf.multi_cell(
@@ -233,10 +223,6 @@ class EmergencyPDFGenerator:
         arabic_family_instructions: Optional[List[str]] = None,
         filename: Optional[str] = None,
     ) -> str:
-        """
-        Generates a 100% Arabic, formal Monochrome Hospital Triage Report (`Emergency_Triage_Report_AR_<ID>.pdf`)
-        to hand directly to the hospital reception / ER physician / patient family in Egypt.
-        """
         pdf = MonochromeTriagePDF(orientation="P", unit="mm", format="A4")
         font_family, has_unicode_font = self._configure_pdf_fonts(pdf)
         if has_unicode_font:
@@ -250,7 +236,6 @@ class EmergencyPDFGenerator:
         if not has_unicode_font:
             return self.generate_triage_pdf(physician_payload, arabic_family_instructions, rule_eval, filename)
 
-        # Severity Banner in Arabic
         severity_ar = (
             "تنبيه طوارئ عاجل: اشتباه مضاعفات دوائية حادة على الكلى / المعدة"
             if rule_eval.overall_severity.value in {"CRITICAL_RED_FLAG", "HIGH_RISK_WARNING"}
@@ -274,7 +259,7 @@ class EmergencyPDFGenerator:
         )
         pdf.ln(3)
 
-        # 1. بيانات المريض والأعراض الحالية
+        # 1. بيانات المريض
         self._render_arabic_section_header(pdf, font_family, "أولاً: بيانات المريض والشكوى الطبية الحالية")
         age_txt = f"{intake.patient_age} سنة" if intake.patient_age else "غير محدد"
         sex_txt = "أنثى" if intake.patient_sex == "female" else ("ذكر" if intake.patient_sex == "male" else "غير محدد")
@@ -285,7 +270,7 @@ class EmergencyPDFGenerator:
         self._write_arabic_paragraph(pdf, font_family, f"• الأعراض الإكلينيكية المرصودة: {symptoms_txt}", bold=False)
         pdf.ln(2)
 
-        # 2. الأدوية عالية الخطورة ومدة الاستخدام
+        # 2. الأدوية
         self._render_arabic_section_header(pdf, font_family, "ثانياً: الأدوية المرصودة عالية الخطورة ومدة التعرض")
         if rule_eval.normalized_medications:
             for med in rule_eval.normalized_medications:
@@ -296,7 +281,7 @@ class EmergencyPDFGenerator:
             self._write_arabic_paragraph(pdf, font_family, "• لم يتم رصد مسكنات أو أدوية عالية الخطورة.", bold=False)
         pdf.ln(2)
 
-        # 3. التفسير الإكلينيكي والربط الطبي (لطبيب الطوارئ والباطنة)
+        # 3. التفسير الإكلينيكي
         self._render_arabic_section_header(pdf, font_family, "ثالثاً: التفسير الإكلينيكي والربط الطبي (اليقظة الدوائية)")
         if rule_eval.triggered_alerts:
             for alert in rule_eval.triggered_alerts:
@@ -306,7 +291,7 @@ class EmergencyPDFGenerator:
             self._write_arabic_paragraph(pdf, font_family, "• لا توجد تفاعلات دوائية حرجة مرصودة حالياً، يُنصح بالفحص الإكلينيكي المعتاد.", bold=False)
         pdf.ln(2)
 
-        # 4. الفحوصات والتحاليل المعملية العاجلة المطلوبة في المستشفى
+        # 4. الفحوصات والتحاليل
         self._render_arabic_section_header(pdf, font_family, "رابعاً: التحاليل والفحوصات الطبية العاجلة المطلوبة فوراً")
         labs_to_render = rule_eval.urgent_labs_consolidated or [
             "Serum Creatinine (تحليل كرياتينين في الدم)",
@@ -319,12 +304,12 @@ class EmergencyPDFGenerator:
             self._write_arabic_paragraph(pdf, font_family, f"{idx}. {lab}", bold=True)
         pdf.ln(2)
 
-        # 5. الإجراءات الطبية العاجلة والتوصيات
-        self._render_arabic_section_header(pdf, font_family, "خامساً: التوصيات والإجراءات العاجلة بالمستشفى")
+        # 5. التوصيات والمصادر الموثقة
+        self._render_arabic_section_header(pdf, font_family, "خامساً: التوصيات الطبية والمصادر الموثقة")
         instructions = arabic_family_instructions or [
             "1. الإيقاف الفوري لأي مسكنات من مجموعة (NSAIDs مثل كتافلام، فولتارين، كيتوفان، بروفين) تحت إشراف الطبيب.",
-            "2. العرض العاجل على طبيب طوارئ الباطنة والكلى لتقييم وظائف الكلى وضغط الدم وحالة السوائل بالجسم.",
-            "3. تجنب إعطاء أي مسكنات إضافية أو صبغات وريدية لحين ظهور نتائج وظائف الكلى (Creatinine & eGFR).",
+            "2. العرض العاجل على طبيب طوارئ الباطنة والكلى بالمستشفى.",
+            "3. المصادر الإكلينيكية المعتمدة: منظمة الصحة العالمية (WHO) وهيئة الدواء المصرية (EDA) وإرشادات KDIGO 2012.",
         ]
         for line in instructions:
             self._write_arabic_paragraph(pdf, font_family, line, bold=False)
@@ -363,7 +348,6 @@ class EmergencyPDFGenerator:
 
     @staticmethod
     def _english_only(text: str) -> str:
-        """Strips parenthetical Arabic translations for the pure English physician report."""
         if "(" in text and any("\u0600" <= ch <= "\u06FF" for ch in text):
             cleaned_parts = []
             for segment in text.split("("):

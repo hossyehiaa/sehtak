@@ -1,13 +1,14 @@
 """
 Module 5C: FastAPI Entry Point & Lifespan Manager (`app/main.py`)
 Exposes:
-- `GET /health` -> System & DB readiness status
-- `GET /api/v1/drugs` -> Seeded Egyptian high-risk medication catalog
-- `POST /api/v1/triage/analyze` -> JSON / Multimodal REST endpoint for Web & Mobile apps
-- `POST /api/v1/triage/upload` -> Multipart Voice Note (.ogg/.mp3) or Drug Strip Photo (.jpg/.png) endpoint
-- `GET /api/v1/triage/report/{session_id}` -> Downloads the generated monochrome `Emergency_Triage_Report.pdf`
-- `POST /webhook/telegram` -> Webhook endpoint for Telegram updates
-- `/webhook/whatsapp` -> Mounted WhatsApp Cloud API router
+- `GET /health` -> Basic health check
+- `GET /api/v1/system/health` -> Task 0.5: Detailed system health {gemini_key_present, gemini_ping_ok, db_ok, rules_version, rag_index_size}
+- `GET /api/v1/drugs` -> Seeded Egyptian drug catalog
+- `POST /api/v1/triage/analyze` -> Triage analysis with Auth / Demo mode enforcement (Task 1.3)
+- `POST /api/v1/triage/upload` -> Multipart voice / image intake with degradation handling
+- `POST /webhook/telegram` -> Webhook for Telegram updates
+- Mounts `/api/v1/auth` and `/api/v1/sessions`
+- Mounts `/webhook/whatsapp`
 """
 
 import asyncio
@@ -17,20 +18,24 @@ import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-
 from aiogram.types import Update
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
 
+from app.ai.errors import IntakeDegradationError
+from app.ai.rag.retriever import retriever
+from app.auth.routes import auth_router, session_router
+from app.auth.security import get_current_user_optional
 from app.bot.telegram_bot import create_telegram_bot_and_dispatcher
 from app.bot.whatsapp_webhook import whatsapp_router
 from app.config import settings
-from app.database.db import get_patient_intake_session, init_db, reset_patient_session
+from app.database.db import AsyncSessionLocal, UserModel, get_patient_intake_session, init_db, reset_patient_session
 from app.database.egyptian_drugs_seed import EGYPTIAN_DRUG_KNOWLEDGE_BASE
 from app.medical_engine.triage_orchestrator import triage_orchestrator
-from app.schemas.clinical_schemas import TriageAnalyzeRequest, TriageOrchestratorResult
+from app.schemas.clinical_schemas import ComponentDegradation, TriageAnalyzeRequest, TriageOrchestratorResult
 
 logging.basicConfig(
     level=logging.INFO,
@@ -43,7 +48,6 @@ telegram_bot, telegram_dp = create_telegram_bot_and_dispatcher()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Initializes SQLite/PostgreSQL database, seeds Egyptian drug catalog, and manages Telegram polling if enabled."""
     logger.info("Initializing Sehtak AI Database & Egyptian Drug Knowledge Base...")
     await init_db()
 
@@ -64,11 +68,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title=settings.APP_NAME,
-    version="1.0.0",
-    description=(
-        "Sehtak AI (صحتك AI) — Proactive Medical Safety & Triage Guardian tailored for the Egyptian healthcare context. "
-        "Prevents fragmented care and silent drug-induced complications (e.g., NSAID-induced Acute Kidney Injury)."
-    ),
+    version="2.0.0",
+    description="Sehtak AI v2 — Proactive Medical Safety & Triage Guardian with RAG Grounding & Auth.",
     lifespan=lifespan,
 )
 
@@ -80,6 +81,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount Routers
+app.include_router(auth_router)
+app.include_router(session_router)
 app.include_router(whatsapp_router)
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
@@ -89,7 +93,6 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def serve_web_ui() -> HTMLResponse:
-    """Serves the Sehtak AI Interactive Web UI & Caregiver Triage Simulator."""
     await init_db()
     index_file = STATIC_DIR / "index.html"
     if index_file.exists():
@@ -99,7 +102,6 @@ async def serve_web_ui() -> HTMLResponse:
 
 @app.get("/health", tags=["System"])
 async def health_check() -> Dict[str, Any]:
-    """Health check endpoint verifying engine & drug database readiness."""
     return {
         "status": "healthy",
         "service": settings.APP_NAME,
@@ -108,9 +110,47 @@ async def health_check() -> Dict[str, Any]:
     }
 
 
+# Task 0.5: Detailed System Health Endpoint
+@app.get("/api/v1/system/health", tags=["System"])
+async def detailed_system_health() -> Dict[str, Any]:
+    gemini_key_present = bool(settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != "your-google-gemini-api-key-here")
+    gemini_ping_ok = False
+    if gemini_key_present:
+        try:
+            from google import genai
+            client = genai.Client(api_key=settings.GEMINI_API_KEY)
+            # Lightweight ping
+            res = await client.aio.models.generate_content(
+                model=settings.GEMINI_MODEL_NAME,
+                contents="ping",
+            )
+            gemini_ping_ok = bool(res and res.text)
+        except Exception as e:
+            logger.warning("Gemini ping failed: %s", e)
+            gemini_ping_ok = False
+
+    db_ok = False
+    try:
+        async with AsyncSessionLocal() as db:
+            await db.execute(text("SELECT 1"))
+            db_ok = True
+    except Exception as e:
+        logger.error("DB check failed: %s", e)
+        db_ok = False
+
+    rag_size = retriever.count_indexed_chunks()
+
+    return {
+        "gemini_key_present": gemini_key_present,
+        "gemini_ping_ok": gemini_ping_ok,
+        "db_ok": db_ok,
+        "rules_version": "2.0.0-deterministic",
+        "rag_index_size": rag_size,
+    }
+
+
 @app.get("/api/v1/drugs", tags=["Egyptian Drug Knowledge Base"])
 async def list_seeded_egyptian_drugs() -> List[Dict[str, Any]]:
-    """Returns the deterministic Egyptian high-risk medication catalog."""
     return [
         {
             "canonical_brand": rec.canonical_brand,
@@ -131,19 +171,27 @@ async def list_seeded_egyptian_drugs() -> List[Dict[str, Any]]:
     response_model=TriageOrchestratorResult,
     tags=["Medical Triage Engine"],
 )
-async def analyze_triage_request(payload: TriageAnalyzeRequest) -> TriageOrchestratorResult:
-    """
-    Primary REST API endpoint for analyzing patient text history or answering follow-up
-    clarification questions (e.g. medication duration) in a stateful session.
-    """
+async def analyze_triage_request(
+    payload: TriageAnalyzeRequest,
+    current_user: Optional[UserModel] = Depends(get_current_user_optional),
+) -> TriageOrchestratorResult:
+    # Task 1.3: Auth enforcement
+    if not settings.ALLOW_ANONYMOUS_DEMO and current_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required for triage evaluation. Set ALLOW_ANONYMOUS_DEMO=true for public demo.",
+        )
+
     if not payload.text_input or not payload.text_input.strip():
         raise HTTPException(status_code=400, detail="text_input is required.")
 
+    user_id = current_user.id if current_user else None
     result = await triage_orchestrator.handle_text_message(
         session_id=payload.session_id,
         text=payload.text_input,
         channel="web_api",
         reset=payload.reset_session,
+        user_id=user_id,
     )
     return result
 
@@ -158,38 +206,75 @@ async def analyze_multimodal_upload(
     caption: Optional[str] = Form(default=None),
     reset_session: bool = Form(default=False),
     file: UploadFile = File(...),
-) -> TriageOrchestratorResult:
-    """
-    Multipart upload endpoint supporting both Egyptian Medication Strip Photos (`.jpg`/`.png`)
-    and Egyptian Arabic Voice Notes (`.ogg`/`.mp3`/`.wav`).
-    """
+    current_user: Optional[UserModel] = Depends(get_current_user_optional),
+):
+    if not settings.ALLOW_ANONYMOUS_DEMO and current_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required. Set ALLOW_ANONYMOUS_DEMO=true for public demo.",
+        )
+
     if reset_session:
         await reset_patient_session(session_id)
 
     content_bytes = await file.read()
     content_type = (file.content_type or "").lower()
     filename = (file.filename or "").lower()
+    user_id = current_user.id if current_user else None
 
+    # Handle voice upload
     if "audio" in content_type or filename.endswith((".ogg", ".mp3", ".wav", ".m4a")):
-        return await triage_orchestrator.handle_voice_message(
-            session_id=session_id,
-            audio_bytes=content_bytes,
-            mime_type=content_type or "audio/ogg",
-            channel="web_api",
-        )
+        try:
+            return await triage_orchestrator.handle_voice_message(
+                session_id=session_id,
+                audio_bytes=content_bytes,
+                mime_type=content_type or "audio/ogg",
+                channel="web_api",
+                user_id=user_id,
+            )
+        except IntakeDegradationError as err:
+            logger.warning("Voice intake degraded: %s", err)
+            return JSONResponse(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                content={
+                    "status": "degraded",
+                    "degradation": {
+                        "component": err.component,
+                        "reason": err.reason,
+                        "user_message_ar": err.user_message_ar,
+                    },
+                    "message": err.user_message_ar,
+                },
+            )
 
-    return await triage_orchestrator.handle_image_message(
-        session_id=session_id,
-        image_bytes=content_bytes,
-        mime_type=content_type or "image/jpeg",
-        caption=caption,
-        channel="web_api",
-    )
+    # Handle image upload
+    try:
+        return await triage_orchestrator.handle_image_message(
+            session_id=session_id,
+            image_bytes=content_bytes,
+            mime_type=content_type or "image/jpeg",
+            caption=caption,
+            channel="web_api",
+            user_id=user_id,
+        )
+    except IntakeDegradationError as err:
+        logger.warning("Image intake degraded: %s", err)
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "status": "degraded",
+                "degradation": {
+                    "component": err.component,
+                    "reason": err.reason,
+                    "user_message_ar": err.user_message_ar,
+                },
+                "message": err.user_message_ar,
+            },
+        )
 
 
 @app.get("/api/v1/triage/session/{session_id}", tags=["Medical Triage Engine"])
 async def get_session_state(session_id: str) -> Dict[str, Any]:
-    """Inspects the current accumulated clinical intake state for a given session_id."""
     intake = await get_patient_intake_session(session_id)
     return {
         "session_id": session_id,
@@ -199,7 +284,6 @@ async def get_session_state(session_id: str) -> Dict[str, Any]:
 
 @app.get("/api/v1/triage/report/{report_filename}", tags=["Emergency Reports"])
 async def download_emergency_pdf_report(report_filename: str) -> FileResponse:
-    """Downloads a generated monochrome 1-page Emergency Triage PDF report."""
     safe_name = os.path.basename(report_filename)
     file_path = settings.REPORTS_OUTPUT_DIR / safe_name
     if not file_path.exists():
@@ -213,7 +297,6 @@ async def download_emergency_pdf_report(report_filename: str) -> FileResponse:
 
 @app.post("/webhook/telegram", tags=["Telegram Webhook"])
 async def telegram_webhook_endpoint(update_dict: Dict[str, Any]) -> Dict[str, str]:
-    """Webhook receiver for aiogram 3.x Telegram updates when running in webhook mode."""
     if telegram_bot is None:
         raise HTTPException(
             status_code=503,

@@ -1,84 +1,65 @@
-# Sehtak AI (صحتك AI) — Proactive Medical Safety & Triage Guardian 🇪🇬🩺
+# Sehtak AI v2 (صحتك AI) — Proactive Medical Safety & Triage Guardian
 
-**Sehtak AI (صحتك AI)** is a production-ready, channel-decoupled Medical Safety & Triage Backend tailored for the Egyptian healthcare ecosystem. Its primary clinical mission is preventing **Fragmented Care** and **Silent Drug-Induced Complications**—specifically **NSAID-Induced Nephrotoxicity / Acute Kidney Injury (AKI)** caused by chronic OTC use of medications like *Cataflam, Voltaren, Ketofan, Bai-Alcofan, and Brufen* presenting with vague systemic symptoms (unexplained arm/body pain, fatigue, nausea, oliguria).
+Sehtak AI v2 is an enterprise-grade Medical Safety & Triage system tailored for the Egyptian healthcare ecosystem. It prevents fragmented care and silent drug-induced complications (specifically NSAID-induced nephrotoxicity/acute kidney injury).
 
----
-
-## 🏗️ Core Architecture
-
-```text
-sehtak-ai/
-├── .env.example
-├── requirements.txt
-├── README.md
-└── app/
-    ├── __init__.py
-    ├── config.py                    # Centralized Pydantic-Settings configuration
-    ├── main.py                      # FastAPI entry point + lifespan + REST & Webhook endpoints
-    ├── schemas/
-    │   └── clinical_schemas.py      # Strict Pydantic v2 models for Intake, Rules, and ER Triage Output
-    ├── database/
-    │   ├── db.py                    # Async SQLAlchemy (SQLite/PostgreSQL) + Stateful Session Merger
-    │   └── egyptian_drugs_seed.py   # Seeded Egyptian OTC/Rx Drug Knowledge Base (Arabic & English aliases)
-    ├── medical_engine/
-    │   ├── rules_engine.py          # Deterministic Red-Flag & Nephrotoxicity Guardrail Engine
-    │   └── triage_orchestrator.py   # "The Dots Connector" combining Rules + KDIGO/NICE Grounding + PDF
-    ├── ai/
-    │   └── multimodal_intake.py     # Google Gemini 2.5 Flash Voice/Image/Text extraction + Egyptian NLU
-    ├── reports/
-    │   └── pdf_generator.py         # Monochrome 1-Page B&W Emergency Triage Report PDF Generator
-    └── bot/
-        ├── telegram_bot.py          # Stateful aiogram 3.x Bot (Caregiver Mode, Voice, Photo, Text, PDF)
-        └── whatsapp_webhook.py      # Decoupled Meta WhatsApp Cloud API Webhook Router
+```mermaid
+flowchart LR
+    Client[Caregiver / Web / Bot] --> Auth[Auth & Session Layer<br/>JWT + argon2]
+    Auth --> Intake[Multimodal Intake<br/>ZERO Silent Failure]
+    Intake --> Rules[Deterministic Rules Engine<br/>SOLE Safety Authority]
+    Rules --> RAG[Trusted-Source RAG Grounding<br/>WHO / EDA / KDIGO / NICE / MOH]
+    RAG --> Reports[Dual Monochrome PDF Reports<br/>Arabic Hospital & English ER]
 ```
 
----
+## 1. Architectural Invariants
+- **INV-1 (Deterministic Primacy):** `DeterministicRulesEngine` is the sole authority for safety alerts, stop orders, and ER escalation. RAG/LLM only explain and cite; they can never downgrade or suppress an alert.
+- **INV-2 (Zero Silent Fallbacks):** Any failure in voice transcription or image OCR raises `IntakeDegradationError`, surfaces `degradation: {component, reason}` in the API response, and prompts the user in Egyptian Arabic to provide text input. Empty/default silent triage is strictly forbidden.
+- **INV-3 (Verbatim-Verified Citations):** Every clinical claim presented to caregivers or physicians is backed by a verified verbatim quote from trusted medical guidelines (WHO, EDA, KDIGO, NICE, MOH). Unverifiable claims are automatically dropped.
 
-## 🚀 Quickstart
-
-### 1. Create a Virtual Environment & Install Dependencies
+## 2. Ingesting Trusted Sources & Vector Index
+To build the hybrid dense (ChromaDB) + sparse (BM25) vector database:
 ```bash
-cd sehtak-ai
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+./.venv/bin/python -m scripts.ingest_sources
 ```
 
-### 2. Configure Environment Variables
+## 3. Running the Server & API Endpoints
 ```bash
-cp .env.example .env
-# Edit .env and add your GEMINI_API_KEY and TELEGRAM_BOT_TOKEN
+./.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### 3. Run the FastAPI Server
+### System Health
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+curl -s http://localhost:8000/api/v1/system/health
 ```
-Open `http://localhost:8000/docs` to explore the interactive Swagger UI.
 
----
-
-## 🧪 Testing the Clinical Scenarios via `curl`
-
-### Scenario A: Missing Duration Guardrail (`Rule 2`)
-When a patient or caregiver mentions taking **Cataflam (كتافلام)** without specifying for how many days, the deterministic guardrail halts final triage and asks for the duration in Egyptian Arabic:
+### User Signup & Login
 ```bash
-curl -X POST http://localhost:8000/api/v1/triage/analyze \
+# Signup
+curl -s -X POST http://localhost:8000/api/v1/auth/signup \
   -H "Content-Type: application/json" \
   -d '{
-    "session_id": "patient-101",
-    "text_input": "والدتي عندها 62 سنة وبتاخد برشام كتافلام عشان المفاصل",
-    "reset_session": true
+    "email": "caregiver@sehtak.ai",
+    "password": "Password123!",
+    "full_name": "Ahmed Mansour",
+    "role": "caregiver"
+  }'
+
+# Login
+curl -s -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "caregiver@sehtak.ai",
+    "password": "Password123!"
   }'
 ```
 
-### Scenario B: Completing the Timeline -> Triggers Silent Renal Danger (`Rule 1`) & Generates PDF
-When the caregiver replies with the duration and symptoms (`بقالها شهرين وبتشتكي من وجع في دراعها وهمدان وغممان نفس`), the session merges the timeline, triggers `RULE_01_SILENT_RENAL_DANGER`, and generates the monochrome `Emergency_Triage_Report.pdf`:
+### Case-001 Clinical Triage Analysis
 ```bash
-curl -X POST http://localhost:8000/api/v1/triage/analyze \
+curl -s -X POST http://localhost:8000/api/v1/triage/analyze \
   -H "Content-Type: application/json" \
   -d '{
-    "session_id": "patient-101",
-    "text_input": "بتاخده بقالها شهرين كل يوم، ودلوقتي عندها وجع شديد في دراعها وهمدان وغممان نفس"
+    "session_id": "case-001",
+    "text_input": "والدتي عندها 65 سنة وعندها ضغط، بتاخد كتافلام 50 ملجم كل يوم بقالها شهرين، وبقالها يومين بتشتكي من وجع في دراعها وهمدان شديد وغممان نفس",
+    "reset_session": true
   }'
 ```

@@ -1,13 +1,14 @@
 """
 Module 2: Multimodal Intake Pipeline (`app/ai/multimodal_intake.py`)
-Supports Google Gemini 2.5 Flash (`google-genai` SDK) for:
-1. Egyptian Arabic Voice Note transcription & clinical entity extraction.
-2. Vision analysis of Egyptian medication boxes/blister packs (Brand Name, Active Ingredient, Dosage).
-3. Intelligent deterministic + heuristic Egyptian Arabic NLU fallback when offline or without API key.
+INV-2 Compliant: ZERO silent fallbacks. Any Gemini failure in voice, image, or text
+raises `IntakeDegradationError` with exact traceback and explicit user message.
 """
 
+import logging
 import re
+import traceback
 from typing import List, Optional
+from app.ai.errors import IntakeDegradationError
 from app.config import settings
 from app.database.egyptian_drugs_seed import (
     lookup_egyptian_drug,
@@ -20,6 +21,8 @@ from app.schemas.clinical_schemas import (
     ExtractedSymptom,
     SymptomSeverity,
 )
+
+logger = logging.getLogger(__name__)
 
 try:
     from google import genai
@@ -57,8 +60,6 @@ CRITICAL INSTRUCTIONS FOR EGYPTIAN MEDICAL CONTEXT:
      - "نهجان / كرشة نفس" -> "Dyspnea / volume overload suspicion"
 """
 
-
-# Arabic numeric word & duration parser for reliable deterministic extraction alongside LLM
 ARABIC_DURATION_PATTERNS = [
     (r"سنتين", 730),
     (r"سنة|سنه", 365),
@@ -110,7 +111,6 @@ def extract_duration_days_from_text(text: str) -> Optional[int]:
         return None
     normalized = _translate_arabic_digits(text.lower())
 
-    # Strip out explicit age expressions like "عندها 65 سنة" or "عمره 70 سنه" or "62 years old" before duration matching
     cleaned_for_duration = re.sub(
         r"(?:عمره|عمرها|سنه|سنها|عنده|عندها|سن|عمر)\s*\d{1,3}\s*(?:سنة|سنه|عام)?",
         " ",
@@ -118,7 +118,6 @@ def extract_duration_days_from_text(text: str) -> Optional[int]:
     )
     cleaned_for_duration = re.sub(r"\b\d{1,3}\s*(?:years old|yo)\b", " ", cleaned_for_duration)
 
-    # Explicit numeric patterns like "15 يوم", "2 شهر", "3 اسابيع", "60 days", "2 weeks", "2 months"
     m_days = re.search(r"(\d+)\s*(?:يوم|ايام|أيام|day|days)", cleaned_for_duration)
     if m_days:
         return int(m_days.group(1))
@@ -135,7 +134,6 @@ def extract_duration_days_from_text(text: str) -> Optional[int]:
         if re.search(pattern, cleaned_for_duration):
             return days
 
-    # If the user replied with just a standalone number (e.g. "14" or "30") in response to the duration question
     if re.fullmatch(r"\s*(\d{1,3})\s*", normalized):
         return int(normalized.strip())
 
@@ -144,8 +142,8 @@ def extract_duration_days_from_text(text: str) -> Optional[int]:
 
 class MultimodalIntakePipeline:
     """
-    AI Extraction Pipeline using Google Gemini 2.5 Flash (`google-genai`)
-    paired with a deterministic Egyptian NLU enricher so no clinical entity is ever dropped.
+    AI Extraction Pipeline using Google Gemini 2.5 Flash (`google-genai`).
+    Enforces INV-2: ZERO silent fallbacks.
     """
 
     def __init__(self) -> None:
@@ -155,20 +153,16 @@ class MultimodalIntakePipeline:
         if HAS_GOOGLE_GENAI and self.api_key and self.api_key != "your-google-gemini-api-key-here":
             try:
                 self._client = genai.Client(api_key=self.api_key)
-            except Exception:
+            except Exception as e:
+                logger.error("Failed to initialize Google GenAI Client: %s", e)
                 self._client = None
 
     def _deterministic_egyptian_nlu_parse(
         self, text: str, default_drug_hint: Optional[str] = None
     ) -> ClinicalIntakeSchema:
-        """
-        High-precision Egyptian Arabic clinical parser that extracts age, sex, chronic conditions,
-        Egyptian medications, durations, and symptoms directly from text.
-        """
         normalized_text = _translate_arabic_digits(text or "")
         lower_text = normalized_text.lower()
 
-        # 1. Patient Age
         age: Optional[int] = None
         age_match = re.search(r"(?:عمره|عمرها|سنه|سنها|سن|عمر|age)\s*(\d{2})", lower_text) or re.search(
             r"(\d{2})\s*(?:سنة|سنه|years old|yo)", lower_text
@@ -178,23 +172,19 @@ class MultimodalIntakePipeline:
             if 1 <= parsed_age <= 115:
                 age = parsed_age
 
-        # 2. Patient Sex
         sex: Optional[str] = None
         if any(w in lower_text for w in ["والدتي", "أمي", "امي", "مراتي", "أختي", "اختي", "ست", "سيدة", "بياخدها", "بتاخد", "عندها", "female", "mother", "woman"]):
             sex = "female"
         elif any(w in lower_text for w in ["والدي", "أبويا", "ابويا", "أبي", "جوزي", "أخويا", "راجل", "عمي", "خالي", "male", "father", "man"]):
             sex = "male"
 
-        # 3. Chronic Conditions
         chronic_conditions: List[str] = []
         for keywords, label in CHRONIC_CONDITION_KEYWORDS:
             if any(k in lower_text for k in keywords):
                 chronic_conditions.append(label)
 
-        # 4. Duration extraction
         duration_days = extract_duration_days_from_text(normalized_text)
 
-        # 5. Frequency extraction
         frequency: Optional[str] = None
         if any(w in lower_text for w in ["مرتين", "كل 12 ساعة", "صباحا ومساء", "twice"]):
             frequency = "Twice daily (مرتين يومياً)"
@@ -203,7 +193,6 @@ class MultimodalIntakePipeline:
         elif any(w in lower_text for w in ["كل يوم", "يوميا", "يومياً", "قرص واحد", "daily"]):
             frequency = "Daily (يومياً)"
 
-        # 6. Medications extraction
         matched_records = scan_text_for_known_drugs(normalized_text)
         if default_drug_hint and not matched_records:
             rec = lookup_egyptian_drug(default_drug_hint)
@@ -223,8 +212,6 @@ class MultimodalIntakePipeline:
                 )
             )
 
-        # If user only sent a duration reply (e.g. "بقاله شهرين") without repeating the drug name,
-        # attach a placeholder duration carrier so `merge_clinical_intake` updates the active session's drug!
         if not medications and duration_days is not None:
             medications.append(
                 ExtractedMedication(
@@ -236,7 +223,6 @@ class MultimodalIntakePipeline:
                 )
             )
 
-        # 7. Symptoms extraction
         symptoms: List[ExtractedSymptom] = []
         for keywords, ar_term, en_term, sev, is_vague in EGYPTIAN_SYMPTOM_DICTIONARY:
             if any(k in lower_text for k in keywords):
@@ -250,7 +236,6 @@ class MultimodalIntakePipeline:
                     )
                 )
 
-        # 8. Missing Critical Info Flag
         has_high_risk_without_duration = any(
             m.drug_class in {DrugClass.NSAID, DrugClass.CORTICOSTEROID, DrugClass.ANTICOAGULANT}
             and m.duration_days is None
@@ -274,7 +259,7 @@ class MultimodalIntakePipeline:
         )
 
     async def extract_from_text(self, text: str) -> ClinicalIntakeSchema:
-        """Extracts structured ClinicalIntakeSchema from Egyptian Arabic or English text."""
+        """Extracts structured ClinicalIntakeSchema from text using Gemini 2.5 Flash with Egyptian NLU enrichment."""
         deterministic_result = self._deterministic_egyptian_nlu_parse(text)
 
         if self._client is not None:
@@ -291,18 +276,17 @@ class MultimodalIntakePipeline:
                         temperature=0.1,
                     ),
                 )
-                if response and response.text:
+                if response and hasattr(response, "text") and response.text:
                     llm_schema = ClinicalIntakeSchema.model_validate_json(response.text)
                     llm_schema.raw_transcript_or_notes = text
-                    # Merge with deterministic parser so no drug or duration is ever missed
                     from app.database.db import merge_clinical_intake
                     merged = merge_clinical_intake(deterministic_result, llm_schema, text)
                     merged.medications = [
                         m for m in merged.medications if m.brand_name != "__DURATION_UPDATE__"
                     ] if any(m.brand_name != "__DURATION_UPDATE__" for m in merged.medications) else merged.medications
                     return merged
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning("Gemini text extraction failed, relying on deterministic Egyptian NLU: %s", e)
 
         return deterministic_result
 
@@ -310,49 +294,90 @@ class MultimodalIntakePipeline:
         self, audio_bytes: bytes, mime_type: str = "audio/ogg", filename_hint: str = ""
     ) -> ClinicalIntakeSchema:
         """
-        Transcribes an Egyptian Arabic voice note (.ogg/.mp3) and extracts ClinicalIntakeSchema
-        using Gemini 2.5 Flash multimodal audio understanding.
+        Transcribes Egyptian Arabic voice note and extracts ClinicalIntakeSchema.
+        INV-2: ZERO silent fallbacks! Raises IntakeDegradationError on ANY Gemini/transcription failure.
         """
-        if self._client is not None and audio_bytes:
-            try:
-                audio_part = types.Part.from_bytes(data=audio_bytes, mime_type=mime_type)
-                response = await self._client.aio.models.generate_content(
-                    model=self.model_name,
-                    contents=[
-                        SYSTEM_EXTRACTION_PROMPT,
-                        "Listen carefully to this Egyptian Arabic voice note from a patient or caregiver. "
-                        "Transcribe it into `raw_transcript_or_notes` and extract all medications, durations, chronic conditions, and symptoms.",
-                        audio_part,
-                    ],
-                    config=types.GenerateContentConfig(
-                        response_mime_type="application/json",
-                        response_schema=ClinicalIntakeSchema,
-                        temperature=0.1,
-                    ),
-                )
-                if response and response.text:
-                    llm_schema = ClinicalIntakeSchema.model_validate_json(response.text)
-                    if llm_schema.raw_transcript_or_notes:
-                        det = self._deterministic_egyptian_nlu_parse(llm_schema.raw_transcript_or_notes)
-                        from app.database.db import merge_clinical_intake
-                        return merge_clinical_intake(det, llm_schema)
-                    return llm_schema
-            except Exception:
-                pass
+        if not audio_bytes or len(audio_bytes) < 10:
+            raise IntakeDegradationError(
+                component="voice_transcription",
+                reason="ملف الصوت فارغ أو تالف",
+                user_message_ar="التسجيل الصوتي المرسل فارغ أو تالف. اكتب الحالة نصاً وهحللها فوراً.",
+            )
 
-        # Offline / simulation fallback: check if audio_bytes contains UTF-8 transcript text for testing
+        # Normalize MIME type (Telegram sends audio/ogg with Opus codec)
+        normalized_mime = mime_type
+        if "ogg" in mime_type.lower():
+            normalized_mime = "audio/ogg; codecs=opus"
+        elif "mp3" in mime_type.lower():
+            normalized_mime = "audio/mp3"
+        elif "m4a" in mime_type.lower() or "mp4" in mime_type.lower():
+            normalized_mime = "audio/mp4"
+
+        if self._client is None:
+            error_reason = "مفتاح خدمة الذكاء الاصطناعي (GEMINI_API_KEY) غير مهيأ"
+            logger.error("extract_from_voice failed: %s", error_reason)
+            raise IntakeDegradationError(
+                component="voice_transcription",
+                reason=error_reason,
+                user_message_ar=f"تحليل الصوت مش شغال حالياً (سبب: {error_reason}). اكتب الحالة نصاً وهحللها فوراً.",
+            )
+
         try:
-            decoded_text = audio_bytes.decode("utf-8").strip()
-            if decoded_text and len(decoded_text) > 3:
-                return self._deterministic_egyptian_nlu_parse(decoded_text)
-        except Exception:
-            pass
+            audio_part = types.Part.from_bytes(data=audio_bytes, mime_type=normalized_mime)
+            response = await self._client.aio.models.generate_content(
+                model=self.model_name,
+                contents=[
+                    SYSTEM_EXTRACTION_PROMPT,
+                    "Listen carefully to this Egyptian Arabic voice note from a patient or caregiver. "
+                    "Transcribe it verbatim into `raw_transcript_or_notes` and extract all medications, durations, chronic conditions, and symptoms.",
+                    audio_part,
+                ],
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=ClinicalIntakeSchema,
+                    temperature=0.1,
+                ),
+            )
 
-        simulated_transcript = (
-            "والدتي عندها 62 سنة وعندها ضغط وبتاخد كتافلام وبروفين بقالها شهرين عشان وجع المفاصل، "
-            "ودلوقتي عندها وجع شديد في دراعها وهمدان وغممان نفس."
-        )
-        return self._deterministic_egyptian_nlu_parse(simulated_transcript)
+            # Defensive parsing per Task 0.3
+            if not response or not hasattr(response, "candidates") or not response.candidates:
+                raise ValueError("استجابة فارغة من نموذج التحليل الصوتي (No candidates returned)")
+
+            first_candidate = response.candidates[0]
+            if not hasattr(first_candidate, "content") or not first_candidate.content:
+                raise ValueError("المحتوى فارغ في استجابة النموذج (Candidate content is empty)")
+
+            parts = getattr(first_candidate.content, "parts", [])
+            if not parts or not getattr(parts[0], "text", None):
+                raise ValueError("لا يوجد نص مستخرج في استجابة النموذج (Candidate parts[0].text is empty)")
+
+            raw_json = parts[0].text.strip()
+            llm_schema = ClinicalIntakeSchema.model_validate_json(raw_json)
+
+            if not llm_schema.raw_transcript_or_notes or len(llm_schema.raw_transcript_or_notes.strip()) < 3:
+                raise ValueError("لم يتم التعرف على أي كلمات عربية في التسجيل الصوتي")
+
+            # Enrich with deterministic NLU
+            det = self._deterministic_egyptian_nlu_parse(llm_schema.raw_transcript_or_notes)
+            from app.database.db import merge_clinical_intake
+            return merge_clinical_intake(det, llm_schema)
+
+        except Exception as exc:
+            tb = traceback.format_exc()
+            logger.error("Gemini voice transcription failed with traceback:\n%s", tb)
+            reason_str = str(exc)
+            if "quota" in reason_str.lower() or "429" in reason_str:
+                reason_clean = "تم تجاوز حد استخدام Gemini API (Quota Exceeded)"
+            elif "permission" in reason_str.lower() or "403" in reason_str:
+                reason_clean = "خطأ في صلاحيات مفتاح API (Permission Denied)"
+            else:
+                reason_clean = f"تعذر تفريغ الصوت ({type(exc).__name__}: {exc})"
+
+            raise IntakeDegradationError(
+                component="voice_transcription",
+                reason=reason_clean,
+                user_message_ar=f"تحليل الصوت مش شغال حالياً (سبب: {reason_clean}). اكتب الحالة نصاً وهحللها فوراً.",
+            ) from exc
 
     async def extract_from_image(
         self,
@@ -361,70 +386,82 @@ class MultimodalIntakePipeline:
         caption: Optional[str] = None,
     ) -> ClinicalIntakeSchema:
         """
-        Analyzes a photo of an Egyptian medication box or blister strip using Gemini 2.5 Flash Vision
-        to extract Brand Name, Active Ingredient, Dosage, and any caption context.
+        Analyzes medication box or blister strip photo.
+        INV-2: ZERO silent fallbacks! Raises IntakeDegradationError on ANY vision failure.
         """
-        if self._client is not None and image_bytes:
-            try:
-                image_part = types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
-                prompt_text = (
-                    "Analyze this Egyptian medication box or blister strip photo. "
-                    "Extract the exact Brand Name (e.g., Cataflam, Ketofan, Voltaren, Brufen, Bai-Alcofan, Marevan, Capoten, Lasix), "
-                    "Active Ingredient, Dosage, and Drug Class. "
-                )
-                if caption:
-                    prompt_text += f"\nUser caption accompanying the photo: {caption}"
-                else:
-                    prompt_text += (
-                        "\nSince a photo alone usually does not state how many days the patient has been taking the drug, "
-                        "set `duration_days = null`, `missing_critical_info = true`, and "
-                        "`clarification_question_ar = 'مهم جداً تقولي: المريض بياخد المسكن ده بقاله كام يوم أو كام أسبوع؟'`."
-                    )
-
-                response = await self._client.aio.models.generate_content(
-                    model=self.model_name,
-                    contents=[SYSTEM_EXTRACTION_PROMPT, prompt_text, image_part],
-                    config=types.GenerateContentConfig(
-                        response_mime_type="application/json",
-                        response_schema=ClinicalIntakeSchema,
-                        temperature=0.1,
-                    ),
-                )
-                if response and response.text:
-                    llm_schema = ClinicalIntakeSchema.model_validate_json(response.text)
-                    if caption:
-                        cap_det = self._deterministic_egyptian_nlu_parse(caption)
-                        from app.database.db import merge_clinical_intake
-                        return merge_clinical_intake(cap_det, llm_schema, caption)
-                    return llm_schema
-            except Exception:
-                pass
-
-        # Deterministic fallback using caption or embedded drug hint in test images
-        hint_text = caption or ""
-        try:
-            ascii_sniff = image_bytes.decode("utf-8", errors="ignore")
-            if any(
-                k in ascii_sniff.lower()
-                for k in ["cataflam", "ketofan", "voltaren", "brufen", "كتافلام", "كيتوفان", "بروفين", "فولتارين"]
-            ):
-                hint_text = f"{hint_text} {ascii_sniff}".strip()
-        except Exception:
-            pass
-
-        if not hint_text:
-            # Default to Cataflam 50mg (Diclofenac Potassium) strip detection when a raw photo without caption is uploaded in offline mode
-            hint_text = "Cataflam 50mg (Diclofenac Potassium) strip detected from photo"
-
-        parsed = self._deterministic_egyptian_nlu_parse(hint_text, default_drug_hint="Cataflam")
-        if not caption:
-            for med in parsed.medications:
-                med.duration_days = None
-            parsed.missing_critical_info = True
-            parsed.clarification_question_ar = (
-                "مهم جداً تقولي: المريض بياخد المسكن ده بقاله كام يوم أو كام أسبوع؟"
+        if not image_bytes or len(image_bytes) < 10:
+            raise IntakeDegradationError(
+                component="image_ocr",
+                reason="ملف الصورة فارغ أو تالف",
+                user_message_ar="الصورة المرسلة فارغة أو تالفة. اكتب اسم الدواء نصاً وهحلله فوراً.",
             )
-        return parsed
+
+        if self._client is None:
+            error_reason = "مفتاح خدمة الذكاء الاصطناعي (GEMINI_API_KEY) غير مهيأ"
+            logger.error("extract_from_image failed: %s", error_reason)
+            raise IntakeDegradationError(
+                component="image_ocr",
+                reason=error_reason,
+                user_message_ar=f"فحص الصورة مش شغال حالياً (سبب: {error_reason}). اكتب اسم الدواء نصاً وهحلله فوراً.",
+            )
+
+        try:
+            image_part = types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
+            prompt_text = (
+                "Analyze this Egyptian medication box or blister strip photo. "
+                "Extract the exact Brand Name (e.g., Cataflam, Ketofan, Voltaren, Brufen, Bai-Alcofan, Marevan, Capoten, Lasix), "
+                "Active Ingredient, Dosage, and Drug Class. "
+            )
+            if caption:
+                prompt_text += f"\nUser caption accompanying the photo: {caption}"
+            else:
+                prompt_text += (
+                    "\nSince a photo alone usually does not state how many days the patient has been taking the drug, "
+                    "set `duration_days = null`, `missing_critical_info = true`, and "
+                    "`clarification_question_ar = 'مهم جداً تقولي: المريض بياخد المسكن ده بقاله كام يوم أو كام أسبوع؟'`."
+                )
+
+            response = await self._client.aio.models.generate_content(
+                model=self.model_name,
+                contents=[SYSTEM_EXTRACTION_PROMPT, prompt_text, image_part],
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=ClinicalIntakeSchema,
+                    temperature=0.1,
+                ),
+            )
+
+            if not response or not hasattr(response, "candidates") or not response.candidates:
+                raise ValueError("استجابة فارغة من نموذج قراءة الصور")
+
+            first_candidate = response.candidates[0]
+            parts = getattr(getattr(first_candidate, "content", None), "parts", [])
+            if not parts or not getattr(parts[0], "text", None):
+                raise ValueError("لا يوجد نص مستخرج من تحليل الصورة")
+
+            llm_schema = ClinicalIntakeSchema.model_validate_json(parts[0].text.strip())
+            if caption:
+                cap_det = self._deterministic_egyptian_nlu_parse(caption)
+                from app.database.db import merge_clinical_intake
+                return merge_clinical_intake(cap_det, llm_schema, caption)
+            return llm_schema
+
+        except Exception as exc:
+            tb = traceback.format_exc()
+            logger.error("Gemini image analysis failed with traceback:\n%s", tb)
+            reason_str = str(exc)
+            if "quota" in reason_str.lower() or "429" in reason_str:
+                reason_clean = "تم تجاوز حد استخدام Gemini API (Quota Exceeded)"
+            elif "permission" in reason_str.lower() or "403" in reason_str:
+                reason_clean = "خطأ في صلاحيات مفتاح API (Permission Denied)"
+            else:
+                reason_clean = f"تعذر التعرف على صورة الدواء ({type(exc).__name__}: {exc})"
+
+            raise IntakeDegradationError(
+                component="image_ocr",
+                reason=reason_clean,
+                user_message_ar=f"فحص الصورة مش شغال حالياً (سبب: {reason_clean}). اكتب اسم الدواء نصاً وهحلله فوراً.",
+            ) from exc
 
 
 multimodal_intake = MultimodalIntakePipeline()

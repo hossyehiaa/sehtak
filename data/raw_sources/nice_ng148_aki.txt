@@ -1,0 +1,10 @@
+National Institute for Health and Care Excellence (NICE)
+NICE Guideline NG148: Acute kidney injury: prevention, detection and management
+Section: Assessing and Monitoring Medication Risks
+Page: 12
+
+Healthcare professionals should assess the risk of acute kidney injury (AKI) in adults before prescribing or dispensing systemic NSAIDs or when reviewing patients taking them over-the-counter. 
+
+Be aware of the nephrotoxic combination known as the 'Triple Whammy': the concurrent administration of an ACE inhibitor or Angiotensin Receptor Blocker (ARB), a diuretic (e.g. furosemide), and an NSAID. This combination drastically impairs glomerular autoregulation, collapses renal perfusion pressure, and frequently precipitates rapid acute renal failure and severe hyperkalemia.
+
+When an adult taking NSAIDs reports general deterioration, fatigue, nausea, shortness of breath, or limb swelling, stop the NSAID immediately. Do not restart NSAIDs until renal function has been fully evaluated with serum creatinine and electrolytes, and hydration status is normalized.

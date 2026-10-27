@@ -1,0 +1,172 @@
+{
+  "chunks": [
+    {
+      "id": "who_nsaids_factsheet_c0",
+      "text": "WHO Fact Sheet on Non-Steroidal Anti-Inflammatory Drugs (NSAIDs) & Rational Prescribing\nDocument: World Health Organization Guidelines on Analgesic Safety\nSection: Adverse Renal and Gastrointestinal Manifestations\nPage: 2\n\nNon-steroidal anti-inflammatory drugs (NSAIDs), including diclofenac, ketoprofen, and ibuprofen, are potent inhibitors of cyclooxygenase enzymes (COX-1 and COX-2). By suppressing renal prostaglandin E2 (PGE2) and prostacyclin (PGI2) synthesis, NSAIDs cause reversible afferent arteriolar vasoconstriction and a steep drop in glomerular filtration rate (GFR).",
+      "metadata": {
+        "source_org": "WHO",
+        "doc_title": "Non-steroidal anti-inflammatory drugs (NSAIDs) Fact Sheet & Rational Use",
+        "url": "https://www.who.int/medicines/publications/rational_use_nsaids",
+        "lang": "en",
+        "version": "2023.1",
+        "section": "Adverse Renal and Gastrointestinal Manifestations",
+        "page": "2",
+        "sha256": "1fce47df4eda84daa5e21cb51d7ec8f4d3195abad27c7404b2986c2dadb13f03"
+      }
+    },
+    {
+      "id": "who_nsaids_factsheet_c1",
+      "text": "esis, NSAIDs cause reversible afferent arteriolar vasoconstriction and a steep drop in glomerular filtration rate (GFR).\n\nContinuous or unmonitored use of any NSAID beyond 7 consecutive days significantly elevates the risk of hemodynamic acute kidney injury, acute interstitial nephritis, and secondary volume overload. Vulnerable populations include older adults above 60 years of age, dehydrated individuals, and patients with pre-existing hypertension or congestive heart failure.",
+      "metadata": {
+        "source_org": "WHO",
+        "doc_title": "Non-steroidal anti-inflammatory drugs (NSAIDs) Fact Sheet & Rational Use",
+        "url": "https://www.who.int/medicines/publications/rational_use_nsaids",
+        "lang": "en",
+        "version": "2023.1",
+        "section": "Adverse Renal and Gastrointestinal Manifestations",
+        "page": "2",
+        "sha256": "1fce47df4eda84daa5e21cb51d7ec8f4d3195abad27c7404b2986c2dadb13f03"
+      }
+    },
+    {
+      "id": "who_nsaids_factsheet_c2",
+      "text": "above 60 years of age, dehydrated individuals, and patients with pre-existing hypertension or congestive heart failure.\n\nWhenever a patient receiving chronic or frequent NSAIDs presents with constitutional or generalized symptoms such as persistent fatigue, malaise, upper limb pain, flank discomfort, nausea, or decreased urine volume, healthcare workers must immediately suspend NSAID therapy and obtain stat serum creatinine, blood urea nitrogen (BUN), and serum electrolyte measurements.",
+      "metadata": {
+        "source_org": "WHO",
+        "doc_title": "Non-steroidal anti-inflammatory drugs (NSAIDs) Fact Sheet & Rational Use",
+        "url": "https://www.who.int/medicines/publications/rational_use_nsaids",
+        "lang": "en",
+        "version": "2023.1",
+        "section": "Adverse Renal and Gastrointestinal Manifestations",
+        "page": "2",
+        "sha256": "1fce47df4eda84daa5e21cb51d7ec8f4d3195abad27c7404b2986c2dadb13f03"
+      }
+    },
+    {
+      "id": "kdnet_kdigo_aki_guidelines_c0",
+      "text": "Kidney Disease: Improving Global Outcomes (KDIGO) Acute Kidney Injury Work Group\nKDIGO Clinical Practice Guideline for Acute Kidney Injury\nSection: Definition and Staging of Acute Kidney Injury (AKI) & Drug-Induced Nephrotoxicity\nPage: 19\n\nAcute kidney injury (AKI) is diagnosed by an increase in Serum Creatinine by 0.3 mg/dL within 48 hours, an increase in Serum Creatinine to 1.5 times baseline known or presumed to have occurred within the prior 7 days, or urine volume < 0.5 mL/kg/h for 6 hours.",
+      "metadata": {
+        "source_org": "KDIGO",
+        "doc_title": "KDIGO 2012 Clinical Practice Guideline for Acute Kidney Injury",
+        "url": "https://kdigo.org/guidelines/acute-kidney-injury/",
+        "lang": "en",
+        "version": "2012.3",
+        "section": "Definition and Staging of Acute Kidney Injury (AKI) & Drug-Induced Nephrotoxicity",
+        "page": "19",
+        "sha256": "c4d179b1b1e72f6166da17a7a2e1742361361bd6f06e0c99cce297cdc1c588b3"
+      }
+    },
+    {
+      "id": "kdnet_kdigo_aki_guidelines_c1",
+      "text": ".5 times baseline known or presumed to have occurred within the prior 7 days, or urine volume < 0.5 mL/kg/h for 6 hours.\n\nKDIGO Staging Criteria:\n- Stage 1: Serum creatinine 1.5–1.9 times baseline OR increase of >= 0.3 mg/dL; Urine output < 0.5 mL/kg/h for 6–12 hours.\n- Stage 2: Serum creatinine 2.0–2.9 times baseline; Urine output < 0.5 mL/kg/h for >= 12 hours.\n- Stage 3: Serum creatinine 3.0 times baseline OR increase to >= 4.0 mg/dL OR initiation of renal replacement therapy (RRT); Urine output < 0.3 mL/kg/h for >= 24 hours or anuria for >= 12 hours.",
+      "metadata": {
+        "source_org": "KDIGO",
+        "doc_title": "KDIGO 2012 Clinical Practice Guideline for Acute Kidney Injury",
+        "url": "https://kdigo.org/guidelines/acute-kidney-injury/",
+        "lang": "en",
+        "version": "2012.3",
+        "section": "Definition and Staging of Acute Kidney Injury (AKI) & Drug-Induced Nephrotoxicity",
+        "page": "19",
+        "sha256": "c4d179b1b1e72f6166da17a7a2e1742361361bd6f06e0c99cce297cdc1c588b3"
+      }
+    },
+    {
+      "id": "kdnet_kdigo_aki_guidelines_c2",
+      "text": "OR initiation of renal replacement therapy (RRT); Urine output < 0.3 mL/kg/h for >= 24 hours or anuria for >= 12 hours.\n\nManagement of Suspected Drug-Induced AKI:\nWe recommend that patients with suspected drug-induced AKI immediately discontinue all potential nephrotoxic agents, notably NSAIDs, aminoglycosides, and excessive diuretics. Discontinuation of offending medications is the primary therapeutic intervention preventing irreversible tubular necrosis. Stat laboratory evaluation must include Serum Creatinine, Blood Urea Nitrogen (BUN), estimated GFR (eGFR), serum potassium (K+), serum sodium (Na+), and complete urinalysis.",
+      "metadata": {
+        "source_org": "KDIGO",
+        "doc_title": "KDIGO 2012 Clinical Practice Guideline for Acute Kidney Injury",
+        "url": "https://kdigo.org/guidelines/acute-kidney-injury/",
+        "lang": "en",
+        "version": "2012.3",
+        "section": "Definition and Staging of Acute Kidney Injury (AKI) & Drug-Induced Nephrotoxicity",
+        "page": "19",
+        "sha256": "c4d179b1b1e72f6166da17a7a2e1742361361bd6f06e0c99cce297cdc1c588b3"
+      }
+    },
+    {
+      "id": "nice_ng148_aki_c0",
+      "text": "National Institute for Health and Care Excellence (NICE)\nNICE Guideline NG148: Acute kidney injury: prevention, detection and management\nSection: Assessing and Monitoring Medication Risks\nPage: 12\n\nHealthcare professionals should assess the risk of acute kidney injury (AKI) in adults before prescribing or dispensing systemic NSAIDs or when reviewing patients taking them over-the-counter.\n\nBe aware of the nephrotoxic combination known as the 'Triple Whammy': the concurrent administration of an ACE inhibitor or Angiotensin Receptor Blocker (ARB), a diuretic (e.g. furosemide), and an NSAID. This combination drastically impairs glomerular autoregulation, collapses renal perfusion pressure, and frequently precipitates rapid acute renal failure and severe hyperkalemia.",
+      "metadata": {
+        "source_org": "NICE",
+        "doc_title": "NICE Guideline NG148: Acute kidney injury: prevention, detection and management",
+        "url": "https://www.nice.org.uk/guidance/ng148",
+        "lang": "en",
+        "version": "NG148-2019",
+        "section": "Assessing and Monitoring Medication Risks",
+        "page": "12",
+        "sha256": "2fd5167962903ac0cdd4eaf71002547aa9e853e8609f58b782453086adc7dc54"
+      }
+    },
+    {
+      "id": "nice_ng148_aki_c1",
+      "text": "tion, collapses renal perfusion pressure, and frequently precipitates rapid acute renal failure and severe hyperkalemia.\n\nWhen an adult taking NSAIDs reports general deterioration, fatigue, nausea, shortness of breath, or limb swelling, stop the NSAID immediately. Do not restart NSAIDs until renal function has been fully evaluated with serum creatinine and electrolytes, and hydration status is normalized.",
+      "metadata": {
+        "source_org": "NICE",
+        "doc_title": "NICE Guideline NG148: Acute kidney injury: prevention, detection and management",
+        "url": "https://www.nice.org.uk/guidance/ng148",
+        "lang": "en",
+        "version": "NG148-2019",
+        "section": "Assessing and Monitoring Medication Risks",
+        "page": "12",
+        "sha256": "2fd5167962903ac0cdd4eaf71002547aa9e853e8609f58b782453086adc7dc54"
+      }
+    },
+    {
+      "id": "eda_patient_leaflets_nsaids_c0",
+      "text": "هيئة الدواء المصرية (Egyptian Drug Authority - EDA)\nالإدارة المركزية لليقظة الصيدلية والدوائية\nمنشور توعوي وتحذير دوائي: الاستخدام العشوائي والمطول لمسكنات الألم ومضادات الالتهاب غير الستيرويدية (ديكلوفيناك، كيتوبروفين، إيبوبروفين)\nالقسم: المخاطر الكلوية والمعوية للمسكنات شائعة الاستخدام في مصر (كتافلام، كيتوفان، فولتارين، باي-ألكوفان، بروفين)\nصفحة: 1\n\nتحذر هيئة الدواء المصرية السادة المواطنين والفرق الطبية من التناول المتكرر أو المزمن لمسكنات الألم من مجموعة NSAIDs دون استشارة طبية. إن استخدام عقارات الديكلوفيناك (Cataflam / Voltaren) والكيتوبروفين (Ketofan / Bai-Alcofan) لفترات تتجاوز أسبوعاً واحداً يؤدي إلى انقباض الشرايين الكلوية الواردة ونقص تروية الكلى، مما يعرض المريض للقصور الكلوي الصامت.",
+      "metadata": {
+        "source_org": "EDA",
+        "doc_title": "Egyptian Drug Authority (EDA) Pharmacovigilance Advisory on NSAIDs: Diclofenac, Ketoprofen & Ibuprofen",
+        "url": "https://edaegypt.gov.eg/pharmacovigilance/advisories/nsaids",
+        "lang": "ar",
+        "version": "EDA-PV-2024",
+        "section": "General",
+        "page": "1",
+        "sha256": "45ab26553ff3076325b612eae1efdefe3c592783a82f47b74a556e1c5f0e2ca7"
+      }
+    },
+    {
+      "id": "eda_patient_leaflets_nsaids_c1",
+      "text": "ت تتجاوز أسبوعاً واحداً يؤدي إلى انقباض الشرايين الكلوية الواردة ونقص تروية الكلى، مما يعرض المريض للقصور الكلوي الصامت.\n\nتزداد خطورة هذه الأدوية بصفة خاصة لدى المرضى الذين تزيد أعمارهم عن 60 عاماً، ومرضى الضغط والسكري، والمصابين بخشونة المفاصل الذين يعتمدون على المسكنات يومياً لتسكين الألم. ظهور أعراض عامة مثل وجع وتكسير الجسم أو ألم الذراع، والإرهاق والهمدان، وغممان النفس، أو قلة التبول يتطلب التوقف الفوري عن تناول المسكن وعمل تحاليل وظائف الكلى بصورة عاجلة.",
+      "metadata": {
+        "source_org": "EDA",
+        "doc_title": "Egyptian Drug Authority (EDA) Pharmacovigilance Advisory on NSAIDs: Diclofenac, Ketoprofen & Ibuprofen",
+        "url": "https://edaegypt.gov.eg/pharmacovigilance/advisories/nsaids",
+        "lang": "ar",
+        "version": "EDA-PV-2024",
+        "section": "General",
+        "page": "1",
+        "sha256": "45ab26553ff3076325b612eae1efdefe3c592783a82f47b74a556e1c5f0e2ca7"
+      }
+    },
+    {
+      "id": "moh_clinical_protocol_aki_c0",
+      "text": "جمهورية مصر العربية - وزارة الصحة والسكان\nقطاع الطب العلاجي - الإدارة العامة للرعاية العاجلة والحرجة\nبروتوكول التعامل والفرز الطبي مع حالات القصور الكلوي الحاد الناتج عن الأدوية (Drug-Induced AKI Protocol)\nالقسم: إجراءات أقسام الطوارئ والباطنة بالمستشفيات\nصفحة: 4",
+      "metadata": {
+        "source_org": "MOH",
+        "doc_title": "Egyptian Ministry of Health and Population: Acute Kidney Injury Management Protocol",
+        "url": "https://mohp.gov.eg/protocols/internal_medicine/aki",
+        "lang": "ar",
+        "version": "MOH-EG-2023",
+        "section": "General",
+        "page": "1",
+        "sha256": "44d267640ac7c9f0936c5e9d459a0abe30eb9237110e2eefcf85be8c7cb5351d"
+      }
+    },
+    {
+      "id": "moh_clinical_protocol_aki_c1",
+      "text": "صور الكلوي الحاد الناتج عن الأدوية (Drug-Induced AKI Protocol)\nالقسم: إجراءات أقسام الطوارئ والباطنة بالمستشفيات\nصفحة: 4\n\nفي حالات اشتباه القصور الكلوي الحاد أو التسمم بالمسكنات في أقسام الاستقبال والطوارئ:\n1. الإيقاف التام لكافة المسكنات غير الستيرويدية (NSAIDs) ومراجعة أدوية الضغط والسيولة.\n2. طلب باقة التحاليل العاجلة فوراً (Stat Renal Lab Panel):\n   - كرياتينين مصل الدم (Serum Creatinine)\n   - نيتروجين يوريا الدم (BUN)\n   - معدل الترشيح الكبيبي المقدر (eGFR)\n   - أملاح الدم الكهربائية: البوتاسيوم (K+) والصوديوم (Na+)\n   - فحص البول الكامل ونسبة الزلال (Urine Analysis & ACR)\n3. إذا كان المريض يشتكي من ألم بالذراع أو الكتف أو الصدر مع تناول المسكنات، يجب عمل رسم قلب (12-Lead ECG) وإنزيمات قلب (Troponin) لاستبعاد الإقفار القلبي الحاد أو اعتلال التامور اليوريمي.",
+      "metadata": {
+        "source_org": "MOH",
+        "doc_title": "Egyptian Ministry of Health and Population: Acute Kidney Injury Management Protocol",
+        "url": "https://mohp.gov.eg/protocols/internal_medicine/aki",
+        "lang": "ar",
+        "version": "MOH-EG-2023",
+        "section": "General",
+        "page": "1",
+        "sha256": "44d267640ac7c9f0936c5e9d459a0abe30eb9237110e2eefcf85be8c7cb5351d"
+      }
+    }
+  ]
+}
