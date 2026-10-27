@@ -10,22 +10,22 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg-cobalt-top: #1463e6;
-      --bg-cobalt-mid: #082972;
-      --bg-navy-deep: #03091c;
-      --bg-obsidian: #01040b;
-      --glass-surface: rgba(8, 15, 34, 0.72);
-      --glass-surface-hover: rgba(15, 27, 58, 0.88);
-      --glass-border: rgba(96, 165, 250, 0.16);
-      --glass-border-strong: rgba(96, 165, 250, 0.36);
-      --pill-gradient: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #38bdf8 100%);
+      --bg-slate-950: #050811;
+      --bg-slate-900: #0a1124;
+      --glass-surface: rgba(10, 18, 38, 0.72);
+      --glass-surface-hover: rgba(14, 25, 52, 0.85);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-border-strong: rgba(96, 165, 250, 0.32);
+      --pill-gradient: linear-gradient(135deg, #1d4ed8 0%, #2563eb 60%, #38bdf8 100%);
       --blue-cta: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
       --danger-red: #f43f5e;
       --warning-amber: #f59e0b;
       --emerald-ok: #10b981;
       --text-primary: #f8fafc;
-      --text-secondary: rgba(226, 232, 240, 0.72);
-      --text-muted: rgba(148, 163, 184, 0.68);
+      --text-secondary: rgba(226, 232, 240, 0.75);
+      --text-muted: rgba(148, 163, 184, 0.65);
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
     * {
@@ -35,15 +35,38 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     html, body {
       height: 100%;
       width: 100%;
-      font-family: 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif !important;
       background:
-        radial-gradient(circle at 22% 10%, var(--bg-cobalt-top) 0%, var(--bg-cobalt-mid) 36%, var(--bg-navy-deep) 72%, var(--bg-obsidian) 100%);
+        radial-gradient(circle at 50% 0%, rgba(30, 64, 175, 0.22) 0%, rgba(11, 19, 43, 0.55) 45%, var(--bg-slate-950) 100%),
+        #050811;
       background-attachment: fixed;
       color: var(--text-primary);
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Minimalist Dark Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.24);
     }
 
     svg {
@@ -230,6 +253,48 @@
       font-size: 13.5px;
       line-height: 1.65;
       color: rgba(226, 232, 240, 0.84);
+    }
+
+    
+    /* Universal Micro-Interactions (Apple & Linear Level Polish) */
+    button, .bento-card, .scenario-btn, .portal-nav-link, .record-card, .drug-card, .dock-icon-btn, .dock-send-btn {
+      transition: transform 0.2s var(--ease-out-expo), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    button:active, .bento-card:active, .scenario-btn:active, .portal-nav-link:active {
+      transform: scale(0.98);
+    }
+    .scenario-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.45);
+    }
+    .dock-send-btn:hover {
+      transform: scale(1.06);
+    }
+    .dock-send-btn:active {
+      transform: scale(0.93);
+    }
+    .dock-icon-btn:hover {
+      transform: scale(1.06);
+    }
+    .dock-icon-btn:active {
+      transform: scale(0.93);
+    }
+
+    @keyframes recordBreathing {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.5);
+      }
+      50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 8px rgba(244, 63, 94, 0);
+      }
+    }
+    .dock-icon-btn.recording {
+      background: var(--danger-red) !important;
+      border-color: var(--danger-red) !important;
+      color: #ffffff !important;
+      animation: recordBreathing 1.8s infinite ease-in-out !important;
     }
 
     /* Clinical Preset Scenarios */
@@ -549,26 +614,24 @@
       transform: translateY(-1px);
     }
 
-    /* Bottom Input Dock with Glowing Orb */
+    /* Bottom Input Dock (Minimalist & Professional) */
     .input-dock {
       margin-top: 12px;
-      background: rgba(8, 15, 32, 0.88);
+      background: rgba(10, 18, 38, 0.88);
       backdrop-filter: blur(20px);
-      border: 1px solid rgba(96, 165, 250, 0.22);
-      border-radius: 26px;
-      padding: 9px 12px;
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      padding: 6px 10px;
       display: flex;
       align-items: center;
       gap: 10px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .glowing-orb {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      background: radial-gradient(circle at 30% 30%, #ffffff 0%, #7cc4ff 35%, #1d63ff 70%, #061844 100%);
-      box-shadow: 0 0 14px rgba(56, 189, 248, 0.72);
+    .input-dock:focus-within {
+      border-color: rgba(96, 165, 250, 0.45);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
     }
 
     .dock-input {
@@ -778,6 +841,18 @@
       display: none;
     }
 
+    
+    @media (max-width: 1360px) and (min-width: 1025px) {
+      .pc-workspace {
+        grid-template-columns: 310px 1fr 340px;
+        gap: 16px;
+        padding: 18px 20px;
+      }
+      .brand-tagline {
+        display: none;
+      }
+    }
+
     @media (max-width: 1024px) {
       .app-header {
         padding: 0 16px;
@@ -792,14 +867,14 @@
       .pc-workspace {
         grid-template-columns: 1fr;
         padding: 0;
-        min-height: calc(100vh - 118px);
+        min-height: calc(100dvh - 118px); min-height: calc(100vh - 118px);
         gap: 0;
       }
 
       .workspace-panel {
         border-radius: 0;
         border: none;
-        min-height: calc(100vh - 118px);
+        min-height: calc(100dvh - 118px); min-height: calc(100vh - 118px);
         padding: 18px 18px 24px;
         background: transparent;
         backdrop-filter: none;
@@ -810,19 +885,23 @@
       }
 
       .chat-stream {
-        max-height: calc(100vh - 265px);
+        max-height: calc(100dvh - 250px); max-height: calc(100vh - 250px);
       }
 
       .mobile-bottom-tabs {
-        position: sticky;
+        position: fixed;
         bottom: 0;
+        left: 0;
+        right: 0;
         z-index: 50;
-        height: 58px;
-        background: rgba(2, 6, 18, 0.94);
-        backdrop-filter: blur(20px);
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        height: calc(56px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        background: rgba(4, 9, 22, 0.96);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
       }
 
       .mobile-tab-btn {
@@ -1214,6 +1293,18 @@
     /* Subtabs inside triage on mobile */
     .mobile-subtabs-bar {
       display: none;
+    }
+
+    
+    @media (max-width: 1360px) and (min-width: 1025px) {
+      .pc-workspace {
+        grid-template-columns: 310px 1fr 340px;
+        gap: 16px;
+        padding: 18px 20px;
+      }
+      .brand-tagline {
+        display: none;
+      }
     }
 
     @media (max-width: 1024px) {
@@ -1883,7 +1974,7 @@
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
         </button>
-        <div class="glowing-orb"></div>
+        
         <input
           type="text"
           id="mainChatInput"
@@ -2297,6 +2388,7 @@
     const SESSION_ID = "sehtak-web-" + Math.random().toString(36).substring(2, 8);
     let latestPdfBase64En = null;
     let latestPdfBase64Ar = null;
+    let latestIntakeSnapshot = null;
     let latestReportId = "SHK";
     let mediaRecorder = null;
     let audioChunks = [];
@@ -2677,6 +2769,7 @@
     }
 
     function updateClinicalInspector(data) {
+      if (data && data.intake_snapshot) latestIntakeSnapshot = data.intake_snapshot;
       if (!data) return;
       const sevBadge = document.getElementById("severityBadge");
       const severity = data.severity || "LOW_RISK";
@@ -2991,6 +3084,8 @@
     }
 
     function triggerScenario(type) {
+      navigateToPage('triage');
+      switchMobileTab('chat');
       if (type === "rule2_guardrail") {
         sendTextToTriage("لو سمحت والدتي عندها 65 سنة وعندها ضغط وبتاخد برشام كتافلام عشان وجع الركبة", true);
       } else if (type === "silent_aki") {
@@ -3100,12 +3195,12 @@
       }
 
       // If no remote sessions or demo mode, check if we have current session reports
-      if (sessions.length === 0 && STATE.lastArabicPdfBase64) {
+      if (sessions.length === 0 && (latestPdfBase64Ar || latestPdfBase64En)) {
         sessions.push({
           session_id: SESSION_ID,
           updated_at: new Date().toISOString(),
-          symptoms: STATE.lastIntake ? STATE.lastIntake.symptoms.map(s => s.symptom_Arabic) : ['أعراض مسجلة بالجلسة الحالية'],
-          medications: STATE.lastIntake ? STATE.lastIntake.medications.map(m => m.brand_name) : [],
+          symptoms: latestIntakeSnapshot && latestIntakeSnapshot.symptoms ? latestIntakeSnapshot.symptoms.map(s => s.symptom_Arabic) : ['أعراض مسجلة بالجلسة الحالية'],
+          medications: latestIntakeSnapshot && latestIntakeSnapshot.medications ? latestIntakeSnapshot.medications.map(m => m.brand_name) : [],
           is_current_session: true
         });
       }
@@ -3253,7 +3348,7 @@
     function testDrugInTriage(brandName) {
       navigateToPage('triage');
       switchMobileTab('chat');
-      const chatInput = document.getElementById('chatTextInput');
+      const chatInput = document.getElementById('mainChatInput');
       if (chatInput) {
         chatInput.value = `المريض بياخد دواء ${brandName}، هل في أي خطورة أو تعارض مع حالته؟`;
         chatInput.focus();
