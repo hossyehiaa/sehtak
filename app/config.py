@@ -1,4 +1,5 @@
 import os
+import urllib.parse
 from pathlib import Path
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -22,7 +23,16 @@ def normalize_db_url(raw_url: str | None) -> str:
         url = "postgresql+asyncpg://" + url[len("postgresql://"):]
 
     if "postgresql+asyncpg://" in url:
-        url = url.replace("sslmode=require", "ssl=require")
+        u = urllib.parse.urlsplit(url)
+        q_dict = urllib.parse.parse_qs(u.query)
+        # asyncpg does not support channel_binding, sslmode, or target_session_attrs in query string
+        q_dict.pop("channel_binding", None)
+        q_dict.pop("sslmode", None)
+        q_dict.pop("target_session_attrs", None)
+        q_dict["ssl"] = ["require"]
+        new_query = urllib.parse.urlencode(q_dict, doseq=True)
+        url = urllib.parse.urlunsplit((u.scheme, u.netloc, u.path, new_query, u.fragment))
+
     return url
 
 
