@@ -83,12 +83,18 @@ class MedicalHybridRetriever:
 
         # Load BM25 index if exists
         bm25_path = self.persist_dir / BM25_STORE_FILE
+        if not bm25_path.exists():
+            # Auto-fallback to repository bundled data/vector_db/bm25_data.json if running in /tmp (Vercel)
+            repo_bm25 = Path(__file__).resolve().parent.parent.parent.parent / "data" / "vector_db" / BM25_STORE_FILE
+            if repo_bm25.exists():
+                bm25_path = repo_bm25
+
         if bm25_path.exists():
             try:
                 data = json.loads(bm25_path.read_text(encoding="utf-8"))
                 self._bm25_chunks = data.get("chunks", [])
                 corpus = [c["text"].lower().split() for c in self._bm25_chunks]
-                if corpus:
+                if corpus and HAS_BM25 and BM25Okapi is not None:
                     self._bm25 = BM25Okapi(corpus)
             except Exception as e:
                 logger.error("Failed to load BM25 store: %s", e)
