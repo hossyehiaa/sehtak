@@ -8,10 +8,27 @@ import logging
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-import chromadb
-from chromadb.config import Settings as ChromaSettings
-from rank_bm25 import BM25Okapi
-from sentence_transformers import SentenceTransformer
+try:
+    import chromadb
+    from chromadb.config import Settings as ChromaSettings
+    HAS_CHROMADB = True
+except Exception:
+    HAS_CHROMADB = False
+    ChromaSettings = None
+
+try:
+    from sentence_transformers import SentenceTransformer
+    HAS_SENTENCE_TRANSFORMERS = True
+except Exception:
+    HAS_SENTENCE_TRANSFORMERS = False
+    SentenceTransformer = None
+
+try:
+    from rank_bm25 import BM25Okapi
+    HAS_BM25 = True
+except Exception:
+    HAS_BM25 = False
+    BM25Okapi = None
 
 from app.config import settings
 
@@ -43,23 +60,26 @@ class MedicalHybridRetriever:
         self._init_storage()
 
     @property
-    def embedder(self) -> SentenceTransformer:
+    def embedder(self) -> Optional[Any]:
+        if not HAS_SENTENCE_TRANSFORMERS:
+            return None
         if self._embedder is None:
             self._embedder = SentenceTransformer(settings.EMBEDDING_MODEL_NAME)
         return self._embedder
 
     def _init_storage(self) -> None:
-        try:
-            self._chroma_client = chromadb.PersistentClient(
-                path=str(self.persist_dir),
-                settings=ChromaSettings(anonymized_telemetry=False),
-            )
-            self._collection = self._chroma_client.get_or_create_collection(
-                name=COLLECTION_NAME,
-                metadata={"hnsw:space": "cosine"},
-            )
-        except Exception as e:
-            logger.error("Failed to initialize ChromaDB collection: %s", e)
+        if HAS_CHROMADB:
+            try:
+                self._chroma_client = chromadb.PersistentClient(
+                    path=str(self.persist_dir),
+                    settings=ChromaSettings(anonymized_telemetry=False),
+                )
+                self._collection = self._chroma_client.get_or_create_collection(
+                    name=COLLECTION_NAME,
+                    metadata={"hnsw:space": "cosine"},
+                )
+            except Exception as e:
+                logger.error("Failed to initialize ChromaDB collection: %s", e)
 
         # Load BM25 index if exists
         bm25_path = self.persist_dir / BM25_STORE_FILE
@@ -131,7 +151,7 @@ class MedicalHybridRetriever:
         sparse_results: List[Dict] = []
 
         # 1. Dense retrieval
-        if self._collection is not None:
+        if self._collection is not None and self.embedder is not None:
             try:
                 q_emb = self.embedder.encode([query], convert_to_numpy=True).tolist()[0]
                 res = self._collection.query(

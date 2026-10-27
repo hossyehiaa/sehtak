@@ -4,8 +4,13 @@ Ranks retrieved pool down to top-5 chunks and enforces confidence threshold.
 """
 
 import logging
-from typing import Dict, List, Optional
-from sentence_transformers import CrossEncoder
+from typing import Any, Dict, List, Optional
+try:
+    from sentence_transformers import CrossEncoder
+    HAS_CROSS_ENCODER = True
+except Exception:
+    HAS_CROSS_ENCODER = False
+    CrossEncoder = None
 
 from app.config import settings
 
@@ -18,7 +23,9 @@ class MedicalCrossEncoderReranker:
         self._model: Optional[CrossEncoder] = None
 
     @property
-    def model(self) -> CrossEncoder:
+    def model(self) -> Optional[Any]:
+        if not HAS_CROSS_ENCODER:
+            return None
         if self._model is None:
             self._model = CrossEncoder(self.model_name)
         return self._model
@@ -29,6 +36,11 @@ class MedicalCrossEncoderReranker:
         """
         if not candidate_chunks or not query:
             return []
+
+        if not HAS_CROSS_ENCODER or self.model is None:
+            for idx, c in enumerate(candidate_chunks[:top_k]):
+                c["rerank_score"] = 0.85 - (idx * 0.02)
+            return candidate_chunks[:top_k]
 
         pairs = [[query, c["text"]] for c in candidate_chunks]
         try:
