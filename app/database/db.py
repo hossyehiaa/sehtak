@@ -159,11 +159,15 @@ def merge_clinical_intake(
 
     meds_by_key: Dict[str, ExtractedMedication] = {}
     for med in existing.medications:
-        key = (med.brand_name or "").strip().lower()
+        if not med.brand_name or med.brand_name.startswith("__") or "DURATION_UPDATE" in med.brand_name:
+            continue
+        key = med.brand_name.strip().lower()
         meds_by_key[key] = med.model_copy(deep=True)
 
     for inc_med in incoming.medications:
-        key = (inc_med.brand_name or "").strip().lower()
+        if not inc_med.brand_name or inc_med.brand_name.startswith("__") or "DURATION_UPDATE" in inc_med.brand_name:
+            continue
+        key = inc_med.brand_name.strip().lower()
         matched_key = None
         for existing_key, existing_med in meds_by_key.items():
             if (
@@ -192,11 +196,19 @@ def merge_clinical_intake(
         else:
             meds_by_key[key] = inc_med.model_copy(deep=True)
 
+    # Detect duration updates from user text/voice note if answering a clarification question
+    from app.ai.multimodal_intake import extract_duration_days_from_text
+    note_duration = extract_duration_days_from_text(new_raw_note or incoming.raw_transcript_or_notes or "")
     incoming_durations = [m.duration_days for m in incoming.medications if m.duration_days is not None]
+    if note_duration is not None:
+        incoming_durations.append(note_duration)
+
     if incoming_durations:
         for med in meds_by_key.values():
             if med.duration_days is None:
                 med.duration_days = incoming_durations[0]
+
+    clean_meds = [m for m in meds_by_key.values() if m.brand_name and not m.brand_name.startswith("__")]
 
     symptoms_by_term: Dict[str, ExtractedSymptom] = {}
     for sym in existing.symptoms:
@@ -218,7 +230,7 @@ def merge_clinical_intake(
         patient_age=patient_age,
         patient_sex=patient_sex,
         chronic_conditions=chronic_set,
-        medications=list(meds_by_key.values()),
+        medications=clean_meds,
         symptoms=list(symptoms_by_term.values()),
         missing_critical_info=incoming.missing_critical_info,
         clarification_question_ar=incoming.clarification_question_ar,

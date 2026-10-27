@@ -128,7 +128,6 @@ class MedicalGroundingEngine:
                     contents=[GROUNDING_SYSTEM_PROMPT, user_prompt],
                     config=types.GenerateContentConfig(
                         response_mime_type="application/json",
-                        response_schema=LLMGroundedClaimsResponse,
                         temperature=0.0,
                     ),
                 )

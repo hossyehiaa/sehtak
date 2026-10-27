@@ -63,6 +63,9 @@ class DeterministicRulesEngine:
         seen_brands: set[str] = set()
 
         for med in intake.medications:
+            if not med.brand_name or med.brand_name.startswith("__") or "DURATION_UPDATE" in med.brand_name:
+                continue
+
             matched_record = lookup_egyptian_drug(med.brand_name) or (
                 lookup_egyptian_drug(med.active_ingredient) if med.active_ingredient else None
             )
@@ -78,7 +81,19 @@ class DeterministicRulesEngine:
                 normalized.append(enriched)
                 seen_brands.add(matched_record.canonical_brand.lower())
             else:
-                normalized.append(med)
+                # If marked as مسكن or NSAID, ensure drug class is NSAID
+                is_analgesic = "مسكن" in med.brand_name.lower() or (med.active_ingredient and "مسكن" in med.active_ingredient.lower())
+                drug_class = DrugClass.NSAID if is_analgesic else med.drug_class
+                normalized.append(
+                    ExtractedMedication(
+                        brand_name=med.brand_name,
+                        active_ingredient=med.active_ingredient,
+                        drug_class=drug_class,
+                        dosage=med.dosage,
+                        duration_days=med.duration_days,
+                        frequency=med.frequency,
+                    )
+                )
                 seen_brands.add(med.brand_name.lower())
 
         # Also scan raw transcript/notes deterministically in case the LLM missed an Egyptian brand name
@@ -177,7 +192,7 @@ class DeterministicRulesEngine:
         # RULE 1: Silent Renal Danger (NSAID > 7 days + Systemic/Vague Symptoms)
         # =========================================================================
         chronic_nsaids = [
-            m for m in nsaid_meds if (m.duration_days is not None and m.duration_days > 7)
+            m for m in nsaid_meds if (m.duration_days is not None and m.duration_days >= 7)
         ]
         if chronic_nsaids and (has_systemic_symptom or len(intake.symptoms) > 0):
             nsaid_summary_en = ", ".join(

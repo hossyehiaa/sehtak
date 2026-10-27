@@ -114,8 +114,13 @@ EGYPTIAN_SYMPTOM_DICTIONARY = [
     (["قلة البول", "بول قليل", "مبيجيبش بول", "بول غامق", "حرقان", "oliguria", "reduced urine", "dark urine"], "قلة كمية البول وتغير لونه", "Oliguria / reduced urine output", SymptomSeverity.CRITICAL, True),
     (["ورم", "مورمة", "تورم", "رجلها مورمة", "رجله مورمة", "منفخ", "edema", "swelling"], "تورم في القدمين أو الجسم (احتباس سوائل)", "Peripheral edema / fluid retention", SymptomSeverity.SEVERE, True),
     (["نهجان", "كرشة نفس", "ضيق تنفس", "مش قادر ياخد نفسه", "dyspnea", "shortness of breath"], "نهجان وضيق في التنفس", "Dyspnea / shortness of breath", SymptomSeverity.CRITICAL, True),
-    (["وجع في الضهر", "وجع ضهر", "جنبه", "اجناب", "كليته", "تكسير في الجسم", "back pain", "flank pain", "body pain"], "ألم في الظهر والجانبين والجسم", "Generalized body ache and flank/back pain", SymptomSeverity.MODERATE, True),
+    (["وجع في الضهر", "وجع ضهر", "جنبه", "اجناب", "كليته", "back pain", "flank pain"], "ألم في الظهر والجانبين", "Flank and lower back pain", SymptomSeverity.MODERATE, True),
     (["فم المعدة", "معدته", "حموضة", "حرقان معدة", "براز أسود", "epigastric", "stomach pain", "melena"], "ألم حاد في فم المعدة", "Epigastric pain / suspected mucosal injury", SymptomSeverity.SEVERE, True),
+    (["كحة", "كحه", "سعال", "كحة ناشفة", "كحه ناشفه", "بلغم", "شرقة", "cough"], "كحة وسعال", "Dry or productive cough", SymptomSeverity.MODERATE, False),
+    (["تكسير في الجسم", "جسمي مكسر", "عضمي مكسر", "مكسر", "وجع في العضم", "body aches", "myalgia"], "تكسير وألم في عضلات الجسم", "Generalized myalgia and body aches", SymptomSeverity.MODERATE, True),
+    (["سخونية", "سخونة", "حرارة", "حمى", "ارتفاع حرارة", "fever", "pyrexia"], "ارتفاع في درجة الحرارة (سخونية)", "Fever / Pyrexia", SymptomSeverity.MODERATE, False),
+    (["احتقان", "زور", "حلق", "وجع في الزور", "صعوبة بلع", "sore throat", "pharyngitis"], "احتقان وألم في الحلق", "Sore throat / Pharyngitis", SymptomSeverity.MILD, False),
+    (["رشح", "زكام", "عطس", "سيلان أنف", "rhinorrhea", "coryza"], "رشح وزكام", "Rhinorrhea / Common cold", SymptomSeverity.MILD, False),
 ]
 
 CHRONIC_CONDITION_KEYWORDS = [
@@ -229,6 +234,7 @@ class MultimodalIntakePipeline:
             if rec:
                 matched_records = [rec]
 
+        # Clean medication list - never produce dummy placeholder medications
         medications: List[ExtractedMedication] = []
         for rec in matched_records:
             medications.append(
@@ -237,17 +243,6 @@ class MultimodalIntakePipeline:
                     active_ingredient=rec.active_ingredient,
                     drug_class=rec.drug_class,
                     dosage=rec.common_dosages[0] if rec.common_dosages else None,
-                    duration_days=duration_days,
-                    frequency=frequency,
-                )
-            )
-
-        if not medications and duration_days is not None:
-            medications.append(
-                ExtractedMedication(
-                    brand_name="__DURATION_UPDATE__",
-                    active_ingredient=None,
-                    drug_class=DrugClass.OTHER,
                     duration_days=duration_days,
                     frequency=frequency,
                 )
@@ -309,11 +304,7 @@ class MultimodalIntakePipeline:
                     llm_schema = ClinicalIntakeSchema.model_validate_json(response.text)
                     llm_schema.raw_transcript_or_notes = text
                     from app.database.db import merge_clinical_intake
-                    merged = merge_clinical_intake(deterministic_result, llm_schema, text)
-                    merged.medications = [
-                        m for m in merged.medications if m.brand_name != "__DURATION_UPDATE__"
-                    ] if any(m.brand_name != "__DURATION_UPDATE__" for m in merged.medications) else merged.medications
-                    return merged
+                    return merge_clinical_intake(deterministic_result, llm_schema, text)
             except Exception as e:
                 logger.warning("Gemini text extraction failed, relying on deterministic Egyptian NLU: %s", e)
 

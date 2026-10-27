@@ -2011,9 +2011,12 @@
       }
 
       const labsList = document.getElementById("urgentLabsList");
-      const labs = (data.rule_evaluation && data.rule_evaluation.urgent_labs_consolidated) || [];
-      if (labs.length > 0) {
-        labsList.innerHTML = labs.map(l => `<li>${l}</li>`).join("");
+      const workup = (data.physician_payload_en && data.physician_payload_en.recommended_immediate_workup) || 
+                     (data.rule_evaluation && data.rule_evaluation.urgent_labs_consolidated) || [];
+      if (workup.length > 0) {
+        labsList.innerHTML = workup.map(l => `<li>${l}</li>`).join("");
+      } else {
+        labsList.innerHTML = `<li>الفحص السريري المباشر وتقييم المؤشرات الحيوية</li>`;
       }
 
       if (data.pdf_base64_ar) {

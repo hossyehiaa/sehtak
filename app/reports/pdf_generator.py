@@ -180,7 +180,9 @@ class EmergencyPDFGenerator:
         )
         pdf.ln(2.5)
 
-        self._render_section_header(pdf, font_family, "4. RECOMMENDED IMMEDIATE STAT WORKUP (KDIGO / NICE GUIDELINES)", align="L")
+        is_renal_alert = bool(rule_eval and rule_eval.triggered_alerts)
+        workup_header = "4. RECOMMENDED STAT WORKUP (KDIGO / NICE AKI PROTOCOL)" if is_renal_alert else "4. RECOMMENDED CLINICAL WORKUP & INITIAL TRIAGE"
+        self._render_section_header(pdf, font_family, workup_header, align="L")
         pdf.set_font(font_family, "B", 9)
         for idx, item in enumerate(physician_payload.recommended_immediate_workup, start=1):
             clean_item = self._english_only(item)
