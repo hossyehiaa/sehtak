@@ -195,3 +195,53 @@ def test_triage_clinical_pipeline_with_rag_citations():
         assert d2["pdf_report_path_ar"] is not None and Path(d2["pdf_report_path_ar"]).exists()
         assert d2["pdf_base64"] is not None
         assert d2["pdf_base64_ar"] is not None
+
+
+def test_medication_and_supplement_consultation_mode():
+    """
+    Verifies Mode C:
+    When a patient/caregiver enters a supplement or medication name like 'سنترم لوتين':
+    1. Extracted as a medication (VITAMIN_SUPPLEMENT), NOT as an illness/symptom.
+    2. Does NOT halt for duration clarification.
+    3. Triggers Mode C (Pharmacological Consultation).
+    4. Generates rich clinical guidance with active ingredients, dosing, and safety.
+    5. Emits dual PDF reports without errors.
+    """
+    with TestClient(app) as client:
+        resp = client.post(
+            "/api/v1/triage/analyze",
+            json={
+                "session_id": "test-session-centrum-consultation",
+                "text_input": "سنترم لوتين",
+                "reset_session": True,
+            },
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["status"] == "completed"
+
+        # Check medications extraction
+        meds = data["intake_snapshot"]["medications"]
+        assert len(meds) >= 1
+        assert any("Centrum" in m["brand_name"] for m in meds)
+        assert any(m["drug_class"] == "VITAMIN_SUPPLEMENT" for m in meds)
+
+        # Symptoms should be empty
+        assert len(data["intake_snapshot"]["symptoms"]) == 0
+
+        # Caregiver response should contain pharmacological consultation sections
+        caregiver_text = data["caregiver_response_ar"]
+        assert "التعريف بالمستحضر" in caregiver_text
+        assert "المواد الفعالة" in caregiver_text or "اللوتين" in caregiver_text
+        assert "هيئة الدواء المصرية" in caregiver_text
+
+        # Physician payload check
+        physician = data["physician_payload_en"]
+        assert physician is not None
+        assert physician["severity_badge"] == "[PHARMACOLOGICAL CONSULTATION - DRUG & SUPPLEMENT SAFETY]"
+        assert "Centrum Lutein" in physician["chief_complaint_and_timeline"]
+
+        # Dual PDF verification
+        assert data["pdf_report_path"] is not None and Path(data["pdf_report_path"]).exists()
+        assert data["pdf_report_path_ar"] is not None and Path(data["pdf_report_path_ar"]).exists()
+

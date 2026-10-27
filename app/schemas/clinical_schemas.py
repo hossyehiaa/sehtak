@@ -15,6 +15,10 @@ class DrugClass(str, Enum):
     ARB = "ARB"
     DIURETIC = "DIURETIC"
     PPI = "PPI"
+    VITAMIN_SUPPLEMENT = "VITAMIN_SUPPLEMENT"
+    ANTIBIOTIC = "ANTIBIOTIC"
+    ANALGESIC = "ANALGESIC"
+    ANTIHISTAMINE = "ANTIHISTAMINE"
     OTHER = "OTHER"
 
 
@@ -106,6 +110,44 @@ class ExtractedMedication(BaseModel):
     dosage: Optional[str] = None
     duration_days: Optional[int] = None
     frequency: Optional[str] = None
+
+    @field_validator("drug_class", mode="before")
+    @classmethod
+    def normalize_drug_class(cls, v):
+        if not v:
+            return DrugClass.OTHER
+        if isinstance(v, DrugClass):
+            return v
+        if isinstance(v, str):
+            clean = v.strip().upper()
+            if any(term in clean for term in ["SUPPLEMENT", "VITAMIN", "MINERAL", "DIETARY", "فيتامين", "مكمل", "MULTIVITAMIN"]):
+                return DrugClass.VITAMIN_SUPPLEMENT
+            if any(term in clean for term in ["NSAID", "NONSTEROIDAL", "NON-STEROIDAL", "مسكن", "ANALGESIC_ANTI_INFLAMMATORY"]):
+                return DrugClass.NSAID
+            if any(term in clean for term in ["CORTICO", "STEROID", "كورتيزون"]):
+                return DrugClass.CORTICOSTEROID
+            if any(term in clean for term in ["ANTIBIOTIC", "ANTIBACTERIAL", "مضاد حيوي", "ANTIMICROBIAL"]):
+                return DrugClass.ANTIBIOTIC
+            if any(term in clean for term in ["ANTICOAG", "مضاد تجلط"]):
+                return DrugClass.ANTICOAGULANT
+            if any(term in clean for term in ["ANTIPLATELET", "صفائح"]):
+                return DrugClass.ANTIPLATELET
+            if any(term in clean for term in ["ACE_INHIBITOR", "ACEI", "ACE INHIBITOR"]):
+                return DrugClass.ACE_INHIBITOR
+            if any(term in clean for term in ["ARB", "ANGIOTENSIN"]):
+                return DrugClass.ARB
+            if any(term in clean for term in ["DIURETIC", "مدر"]):
+                return DrugClass.DIURETIC
+            if any(term in clean for term in ["PPI", "PROTON", "معدة", "حموضة"]):
+                return DrugClass.PPI
+            if any(term in clean for term in ["ANALGESIC", "PARACETAMOL", "باراسيتامول", "خافض حرارة"]):
+                return DrugClass.ANALGESIC
+            if any(term in clean for term in ["ANTIHISTAMINE", "حساسية"]):
+                return DrugClass.ANTIHISTAMINE
+            for dc in DrugClass:
+                if dc.value == clean:
+                    return dc
+        return DrugClass.OTHER
 
 
 class ExtractedSymptom(BaseModel):

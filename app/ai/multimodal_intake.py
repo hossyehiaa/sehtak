@@ -39,18 +39,27 @@ Your job is to analyze Egyptian patient or caregiver inputs (Text, Egyptian Arab
 and extract a strictly validated `ClinicalIntakeSchema` JSON object.
 
 CRITICAL INSTRUCTIONS FOR EGYPTIAN MEDICAL CONTEXT:
-1. Identify all Egyptian brand medications and map them to their exact active ingredients and drug classes:
+1. Identify all Egyptian brand medications, dietary supplements, and active ingredients:
+   - Vitamins & Dietary Supplements: Centrum / Centrum Lutein (سنترم / سنترم لوتين), Omega 3 / Omega 3 Plus (أوميجا 3), Vidrop / Devarol (فيتامين د / فيدروب), Neurobion / Milga (نيوروبيون / ميلجا / فيتامين ب), Zinc, Calcium, Iron (Ferose / Fefol). Map drug_class to "VITAMIN_SUPPLEMENT".
+   - Safe Analgesics & Antipyretics: Panadol / Paramol / Pyral / Abimol (Paracetamol / باراسيتامول / بنادول), Congestal / Comtrex / 123 (كونجستال). Map drug_class to "ANALGESIC".
+   - Antibiotics & Antiseptics: Augmentin, Hibiotic, Curam, Antinal (أنتينال), Flagyl. Map drug_class to "ANTIBIOTIC".
    - NSAIDs: Cataflam / Catafast (Diclofenac Potassium), Voltaren / Declophen / Olfen (Diclofenac Sodium),
-     Ketofan / Bai-Alcofan / Alcofan / Ketolgin (Ketoprofen), Brufen / Marcofen (Ibuprofen), Celebrex / Arcoxia / Mobic.
-   - Corticosteroids: Dexamethasone, Epidron, Prednisolone, Solupred, Solu-Medrol, Phenadone.
+     Ketofan / Bai-Alcofan / Alcofan / Ketolgin (Ketoprofen), Brufen / Marcofen (Ibuprofen), Celebrex / Arcoxia / Mobic. Map drug_class to "NSAID".
+   - Corticosteroids: Dexamethasone, Epidron, Prednisolone, Solupred, Solu-Medrol, Phenadone. Map drug_class to "CORTICOSTEROID".
    - Anticoagulants/Antiplatelets: Marevan (Warfarin), Plavix (Clopidogrel), Aspocid / Jusprin (Aspirin), Eliquis (Apixaban), Xarelto.
    - Antihypertensives & Diuretics: Capoten (Captopril), Tritace (Ramipril), Tareg (Valsartan), Lasix (Furosemide), Natrilix.
+
+CRITICAL PHARMACOLOGICAL INVARIANTS:
+- When a user enters or inquires about a medication, vitamin, or supplement (e.g. "سنترم لوتين", "اوميجا 3", "بنادول", "عايز اعرف عن سنترم"), ALWAYS extract it into the `medications` array.
+- NEVER treat a medication or supplement name as an illness or symptom in `symptoms`. Leave `symptoms` empty (`[]`) if the user is only asking about or naming a drug/supplement.
+- For vitamins, supplements, and safe antipyretics without acute toxicity, set `missing_critical_info: false` and `clarification_question_ar: null`.
+
 2. Duration extraction (`duration_days`):
    - Convert Egyptian Arabic time expressions accurately into integer `duration_days`:
      - "اسبوع" = 7, "اسبوعين" = 14, "3 اسابيع" = 21
      - "شهر" = 30, "شهرين" = 60, "3 شهور" = 90, "سنة" = 365
      - "من فترة طويلة" or "على طول" or "مزمن" = 30
-   - If the duration of a medication is NOT mentioned at all in the input, leave `duration_days` as `null` (`None`), set `missing_critical_info = true`,
+   - If the duration of a high-risk medication (NSAID, Corticosteroid, Anticoagulant) is NOT mentioned at all, leave `duration_days` as `null` (`None`), set `missing_critical_info = true`,
      and set `clarification_question_ar = "مهم جداً تقولي: المريض بياخد المسكن ده بقاله كام يوم أو كام أسبوع؟"`.
 3. Symptom extraction (`symptoms`):
    - Translate colloquial Egyptian symptoms into standard clinical English terms:
@@ -59,6 +68,7 @@ CRITICAL INSTRUCTIONS FOR EGYPTIAN MEDICAL CONTEXT:
      - "غممان نفس / نفسه مسدودة / ترجيع" -> "Nausea, anorexia, and uremic gastropathy suspicion"
      - "قلة بول / المية محبوسة / رجله مورمة" -> "Oliguria and peripheral edema"
      - "نهجان / كرشة نفس" -> "Dyspnea / volume overload suspicion"
+     - "كحة ناشفة / تكسير في الجسم" -> "Dry cough and generalized body aches"
 
 4. STRICT JSON OUTPUT STRUCTURE:
 Output strictly valid JSON matching this schema (do NOT return symptoms or medications as simple string arrays):
@@ -344,6 +354,7 @@ class MultimodalIntakePipeline:
             ],
             "response_format": {"type": "json_object"},
             "temperature": 0.1,
+            "max_tokens": 800,
         }
 
         try:

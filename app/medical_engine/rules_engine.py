@@ -69,6 +69,10 @@ class DeterministicRulesEngine:
             matched_record = lookup_egyptian_drug(med.brand_name) or (
                 lookup_egyptian_drug(med.active_ingredient) if med.active_ingredient else None
             )
+            canonical_name = (matched_record.canonical_brand if matched_record else med.brand_name).lower()
+            if canonical_name in seen_brands:
+                continue
+
             if matched_record:
                 enriched = ExtractedMedication(
                     brand_name=matched_record.canonical_brand,
@@ -79,7 +83,7 @@ class DeterministicRulesEngine:
                     frequency=med.frequency,
                 )
                 normalized.append(enriched)
-                seen_brands.add(matched_record.canonical_brand.lower())
+                seen_brands.add(canonical_name)
             else:
                 # If marked as مسكن or NSAID, ensure drug class is NSAID
                 is_analgesic = "مسكن" in med.brand_name.lower() or (med.active_ingredient and "مسكن" in med.active_ingredient.lower())
@@ -94,7 +98,7 @@ class DeterministicRulesEngine:
                         frequency=med.frequency,
                     )
                 )
-                seen_brands.add(med.brand_name.lower())
+                seen_brands.add(canonical_name)
 
         # Also scan raw transcript/notes deterministically in case the LLM missed an Egyptian brand name
         if intake.raw_transcript_or_notes:

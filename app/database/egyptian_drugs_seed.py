@@ -235,6 +235,135 @@ EGYPTIAN_DRUG_KNOWLEDGE_BASE: List[EgyptianDrugRecord] = [
         gi_bleed_risk=False,
         clinical_notes="Loop/thiazide diuretic causing volume depletion; component of the lethal 'Triple Whammy' (ACEi/ARB + Diuretic + NSAID).",
     ),
+
+    # ==========================================================
+    # 5. Vitamins & Dietary Supplements (المكملات الغذائية والفيتامينات والمعادن)
+    # ==========================================================
+    EgyptianDrugRecord(
+        canonical_brand="Centrum Lutein",
+        active_ingredient="Multivitamins, Minerals & Lutein",
+        drug_class=DrugClass.VITAMIN_SUPPLEMENT,
+        aliases_en_ar=[
+            "centrum lutein", "سنترم لوتين", "سنتروم لوتين", "سنترم باللوتين", "سنتروم باللوتين",
+            "centrum with lutein", "لوتين", "lutein",
+        ],
+        common_dosages=["1 tablet daily with food (قرص واحد يومياً مع الطعام)"],
+        nephrotoxic_risk=False,
+        gi_bleed_risk=False,
+        clinical_notes="Complete multivitamin formulation enriched with Lutein for macular & retinal eye health, cellular antioxidant defense, and energy metabolism.",
+    ),
+    EgyptianDrugRecord(
+        canonical_brand="Centrum",
+        active_ingredient="Multivitamins & Essential Minerals",
+        drug_class=DrugClass.VITAMIN_SUPPLEMENT,
+        aliases_en_ar=[
+            "centrum", "سنترم", "سنتروم", "centrum silver", "سنترم سيلفر", "سنتروم سيلفر",
+            "centrum adults", "فيتامين سنترم",
+        ],
+        common_dosages=["1 tablet daily with food (قرص واحد يومياً مع الطعام)"],
+        nephrotoxic_risk=False,
+        gi_bleed_risk=False,
+        clinical_notes="Comprehensive daily multivitamin addressing micronutrient deficiencies, cellular vitality, and immune maintenance.",
+    ),
+    EgyptianDrugRecord(
+        canonical_brand="Omega 3 Plus",
+        active_ingredient="Fish Oil (EPA/DHA) & Wheat Germ Oil",
+        drug_class=DrugClass.VITAMIN_SUPPLEMENT,
+        aliases_en_ar=[
+            "omega 3", "omega 3 plus", "اوميجا 3", "أوميجا 3", "اوميجا ٣", "أوميجا ٣",
+            "زيت سمك", "fish oil", "اوميجا", "أوميجا",
+        ],
+        common_dosages=["1000mg 1-2 capsules daily after meals (كبسولة إلى كبسولتين يومياً)"],
+        nephrotoxic_risk=False,
+        gi_bleed_risk=False,
+        clinical_notes="Essential omega-3 polyunsaturated fatty acids supporting lipid profile, endothelial function, and cognitive health. Mild antiplatelet action at high doses.",
+    ),
+    EgyptianDrugRecord(
+        canonical_brand="Vidrop",
+        active_ingredient="Cholecalciferol (Vitamin D3)",
+        drug_class=DrugClass.VITAMIN_SUPPLEMENT,
+        aliases_en_ar=[
+            "vidrop", "فيدروب", "ديفارول", "devarol", "فيتامين د", "فيتامين d", "vitamin d",
+            "vitamin d3", "cholecalciferol", "كوليكالسيفيرول", "نقط فيدروب",
+        ],
+        common_dosages=["1 bottle weekly or 1 drop = 100 IU (100,000 IU monthly or pediatric drops)"],
+        nephrotoxic_risk=False,
+        gi_bleed_risk=False,
+        clinical_notes="Regulates calcium-phosphate homeostasis, bone mineralization, and neuromuscular/immune competence. Caution in renal impairment to avoid hypercalcemia.",
+    ),
+    EgyptianDrugRecord(
+        canonical_brand="Neurobion",
+        active_ingredient="Vitamin B1 (Thiamine) + B6 (Pyridoxine) + B12 (Cyanocobalamin)",
+        drug_class=DrugClass.VITAMIN_SUPPLEMENT,
+        aliases_en_ar=[
+            "neurobion", "نيوروبيون", "neuroton", "نيوروتون", "ميلجا", "milga", "milga advance",
+            "ميلجا ادفانس", "فيتامين ب", "vitamin b", "vitamin b complex", "حقن نيوروبيون",
+        ],
+        common_dosages=["1 tablet 1-3 times daily or 1 ampoule IM twice weekly"],
+        nephrotoxic_risk=False,
+        gi_bleed_risk=False,
+        clinical_notes="Neurotropic B-vitamins indicated for diabetic/peripheral neuropathy, neuritis, and metabolic nerve cell repair. High safety profile.",
+    ),
+
+    # ==========================================================
+    # 6. Safe Analgesics & Antipyretics (المسكنات الآمنة وخوافض الحرارة)
+    # ==========================================================
+    EgyptianDrugRecord(
+        canonical_brand="Panadol",
+        active_ingredient="Paracetamol (Acetaminophen)",
+        drug_class=DrugClass.ANALGESIC,
+        aliases_en_ar=[
+            "panadol", "بنادول", "باراسيتامول", "paracetamol", "adol", "أدول", "pyral", "بيرال",
+            "paramol", "بارامول", "cetamol", "سيتامول", "panadol extra", "بنادول ازرق", "بنادول اكسترا",
+            "panadol advance", "بنادول ادفانس", "ابيمول", "abimol",
+        ],
+        common_dosages=["500mg - 1000mg every 6-8 hours (Max 4000mg/24h)"],
+        nephrotoxic_risk=False,
+        gi_bleed_risk=False,
+        clinical_notes="First-line antipyretic & analgesic. Spares renal hemodynamics and gastric mucosa. Caution in acute or chronic hepatic impairment.",
+    ),
+    EgyptianDrugRecord(
+        canonical_brand="Congestal",
+        active_ingredient="Paracetamol + Pseudoephedrine HCl + Chlorpheniramine Maleate",
+        drug_class=DrugClass.ANALGESIC,
+        aliases_en_ar=[
+            "congestal", "كونجستال", "123", "وان تو ثري", "comtrex", "كومتركس", "flustop", "فلستوب",
+            "day & night", "دواء برد", "برشام برد",
+        ],
+        common_dosages=["1 tablet every 8 hours (قرص كل 8 ساعات بعد الأكل)"],
+        nephrotoxic_risk=False,
+        gi_bleed_risk=False,
+        clinical_notes="Combination cold and flu symptomatic relief. Safe for kidneys, but sympathomimetic pseudoephedrine warrants caution in severe hypertension and glaucoma.",
+    ),
+
+    # ==========================================================
+    # 7. Common Egyptian Antibiotics & Antiseptics
+    # ==========================================================
+    EgyptianDrugRecord(
+        canonical_brand="Antinal",
+        active_ingredient="Nifuroxazide",
+        drug_class=DrugClass.ANTIBIOTIC,
+        aliases_en_ar=[
+            "antinal", "أنتينال", "انتينال", "nifuroxazide", "نيفوروكزازيد", "مطهر معوي",
+        ],
+        common_dosages=["200mg 4 times daily (كبسولة كل 6 ساعات)"],
+        nephrotoxic_risk=False,
+        gi_bleed_risk=False,
+        clinical_notes="Locally active broad-spectrum intestinal antiseptic for acute infectious diarrhea. Negligible systemic absorption.",
+    ),
+    EgyptianDrugRecord(
+        canonical_brand="Augmentin",
+        active_ingredient="Amoxicillin + Clavulanic Acid",
+        drug_class=DrugClass.ANTIBIOTIC,
+        aliases_en_ar=[
+            "augmentin", "اوجمنتين", "أوجمنتين", "hibiotic", "هاي بيوتك", "curam", "كيورام",
+            "megamox", "ميجاموكس", "amoxicillin", "اموكسيسيللين",
+        ],
+        common_dosages=["1g (1000mg) every 12 hours (قرص كل 12 ساعة)"],
+        nephrotoxic_risk=False,
+        gi_bleed_risk=False,
+        clinical_notes="Broad-spectrum beta-lactamase inhibitor combination. Requires dose reduction in severe renal impairment (eGFR < 30 mL/min).",
+    ),
 ]
 
 
@@ -254,14 +383,31 @@ def lookup_egyptian_drug(query_name: str) -> EgyptianDrugRecord | None:
 
 
 def scan_text_for_known_drugs(raw_text: str) -> List[EgyptianDrugRecord]:
-    """Deterministically scans raw Arabic/English text for any known Egyptian high-risk medications."""
+    """Deterministically scans raw Arabic/English text for any known Egyptian medications (longest alias wins)."""
     if not raw_text:
         return []
     lowered = raw_text.lower()
-    found: Dict[str, EgyptianDrugRecord] = {}
+    matches: List[tuple[int, str, EgyptianDrugRecord]] = []
     for record in EGYPTIAN_DRUG_KNOWLEDGE_BASE:
+        best_alias = ""
         for alias in record.aliases_en_ar:
             if alias.lower() in lowered:
-                found[record.canonical_brand] = record
-                break
-    return list(found.values())
+                if len(alias) > len(best_alias):
+                    best_alias = alias.lower()
+        if best_alias:
+            matches.append((len(best_alias), best_alias, record))
+
+    # Sort descending by alias length so more specific matches (e.g. "centrum lutein") come first
+    matches.sort(key=lambda x: x[0], reverse=True)
+
+    final_records: Dict[str, EgyptianDrugRecord] = {}
+    chosen_aliases: List[str] = []
+
+    for _, alias, rec in matches:
+        if any(alias in chosen for chosen in chosen_aliases):
+            continue
+        if rec.canonical_brand not in final_records:
+            final_records[rec.canonical_brand] = rec
+            chosen_aliases.append(alias)
+
+    return list(final_records.values())

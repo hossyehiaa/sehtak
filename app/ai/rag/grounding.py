@@ -66,8 +66,8 @@ class MedicalGroundingEngine:
         Retrieves trusted source chunks, reranks them, prompts Gemini for grounded claims,
         and enforces verbatim verification.
         """
-        # If no alerts or no medications, return clean empty
-        if not intake.medications and not rule_eval.triggered_alerts:
+        # If no deterministic renal or drug-drug alerts, return clean empty (Mode B & Mode C provide tailored guidance)
+        if not rule_eval.triggered_alerts:
             return GroundedAnswer(claims=[], overall_confidence=1.0)
 
         # Build targeted query in English for multilingual cross-encoder matching

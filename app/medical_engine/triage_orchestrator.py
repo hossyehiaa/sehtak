@@ -28,6 +28,9 @@ from app.reports.pdf_generator import pdf_generator
 from app.schemas.clinical_schemas import (
     ClinicalIntakeSchema,
     ComponentDegradation,
+    DrugClass,
+    ExtractedMedication,
+    ExtractedSymptom,
     GroundedAnswer,
     PhysicianEmergencyPayload,
     RuleEngineEvaluation,
@@ -61,19 +64,42 @@ class TriageOrchestrator:
             return rule_eval.clarification_prompt_ar
 
         clean_meds = [m for m in rule_eval.normalized_medications if not m.brand_name.startswith("__")]
+
+        def _format_med_label(m: ExtractedMedication) -> str:
+            if m.active_ingredient:
+                desc = m.active_ingredient
+            elif m.drug_class == DrugClass.VITAMIN_SUPPLEMENT:
+                desc = "فيتامينات ومكمل غذائي"
+            elif m.drug_class == DrugClass.ANALGESIC:
+                desc = "مسكن آمن وخافض حرارة"
+            elif m.drug_class == DrugClass.ANTIBIOTIC:
+                desc = "مضاد حيوي"
+            elif m.drug_class == DrugClass.NSAID:
+                desc = "مسكن ومضاد للالتهاب"
+            else:
+                desc = "مستحضر دوائي"
+            dur = f" لمدة {m.duration_days} يوم" if m.duration_days else ""
+            return f"{m.brand_name} ({desc}){dur}"
+
         meds_ar = (
-            "، ".join(
-                f"{m.brand_name} ({m.active_ingredient or 'مسكن'})"
-                + (f" لمدة {m.duration_days} يوم" if m.duration_days else "")
-                for m in clean_meds
-            )
+            "، ".join(_format_med_label(m) for m in clean_meds)
             if clean_meds
             else "لا يوجد استخدام معلن لأدوية مزمنة"
         )
+
+        is_drug_consultation = False
+        if not rule_eval.triggered_alerts and clean_meds:
+            if not intake.symptoms or len(intake.symptoms) == 0:
+                is_drug_consultation = True
+            elif any(m.drug_class in {DrugClass.VITAMIN_SUPPLEMENT, DrugClass.OTHER, DrugClass.ANALGESIC} for m in clean_meds) and len(intake.symptoms) <= 1:
+                is_drug_consultation = True
+            elif raw_user_note and any(m.brand_name.lower() in raw_user_note.lower() for m in clean_meds) and any(kw in raw_user_note.lower() for kw in ["دوا", "دواء", "فيتامين", "مكمل", "جرعة", "استخدام", "فوائد", "ايه ده", "عبارة عن ايه"]):
+                is_drug_consultation = True
+
         symptoms_ar = (
-            "، ".join(s.symptom_Arabic for s in intake.symptoms)
-            if intake.symptoms
-            else "أعراض عامة / فحص وقائي"
+            "استشارة دوائية ومراجعة سلامة المكمل / العلاج"
+            if (is_drug_consultation and not intake.symptoms)
+            else ("، ".join(s.symptom_Arabic for s in intake.symptoms) if intake.symptoms else "أعراض عامة / فحص وقائي")
         )
 
         lines: List[str] = []
@@ -116,6 +142,19 @@ class TriageOrchestrator:
                 lines.append("- النشرات الدورية لهيئة الدواء المصرية (EDA) ومنظمة الصحة العالمية حول أمان مضادات الالتهاب غير الستيرويدية.")
 
         # ------------------------------------------------------------------
+        # MODE C: Medication & Dietary Supplement Consultation
+        # ------------------------------------------------------------------
+        elif is_drug_consultation:
+            drug_consultation_body = await self._generate_medication_consultation_ar(intake, clean_meds, raw_user_note)
+            lines.append(drug_consultation_body)
+            lines.append("")
+            lines.append("**المصادر والأدلة الإكلينيكية المعتمدة:**")
+            lines.append("- هيئة الدواء المصرية (EDA) — الأدلة الإرشادية لسلامة وتسجيل المكملات الغذائية والأدوية المصرح بها.")
+            lines.append("- المعهد الوطني الأمريكي للصحة (NIH) — مكتب المكملات الغذائية (Office of Dietary Supplements - ODS).")
+            lines.append("- منظمة الصحة العالمية (WHO) — إرشادات المغذيات الدقيقة والمكملات المتوازنة.")
+            lines.append("- الدليل الدوائي البريطاني (British National Formulary - BNF).")
+
+        # ------------------------------------------------------------------
         # MODE B: Symptom-Driven Smart Triage (No chronic drug toxicity)
         # ------------------------------------------------------------------
         else:
@@ -134,6 +173,183 @@ class TriageOrchestrator:
             "*إخلاء مسؤولية طبي: نظام «صحتك AI» هو نظام دعم قرار وفرز طبي مبكر (Clinical Triage & Safety Guardian) ولا يُعد بديلاً عن الفحص الطبي المباشر أو تشخيص الطبيب المعالج.*"
         )
         return "\n".join(lines)
+
+    async def _generate_medication_consultation_ar(
+        self,
+        intake: ClinicalIntakeSchema,
+        clean_meds: List[ExtractedMedication],
+        raw_user_note: Optional[str] = None,
+    ) -> str:
+        """
+        Mode C: Authoritative Clinical Pharmacological & Dietary Supplement Consultation
+        Powered by Gemini / Groq with rich, deterministic Egyptian pharmacological fallback.
+        """
+        from app.config import settings
+
+        med_names = "، ".join(m.brand_name for m in clean_meds)
+        med_actives = "، ".join(m.active_ingredient or m.brand_name for m in clean_meds)
+
+        prompt = (
+            "أنت «صحتك AI» - خبير اليقظة الدوائية والصيدلة الإكلينيكية المعتمد في مصر.\n"
+            f"المستحضر أو المكمل الغذائي المطلوب تحليله: {med_names}\n"
+            f"المواد الفعالة أو الفئة: {med_actives}\n"
+            f"استفسار المريض/المرافق: {raw_user_note or 'استفسار عام عن دواعي الاستخدام والجرعة والامان'}\n"
+            f"العمر: {intake.patient_age or 'غير محدد'}\n\n"
+            "المطلوب: تقديم دليل دوائي إكلينيكي رصين وموثق بأسلوب علمي ومطمئن باللهجة المصرية الطبية الراقية بدون أي إيموجيز نهائياً، وفق الأقسام التالية بالضبط:\n"
+            "**1. التعريف بالمستحضر والمواد الفعالة:**\n"
+            "(شرح علمي دقيق لماهية المستحضر وتصنيفه الطبي، والمواد الفعالة ومضادات الأكسدة مثل اللوتين أو الفيتامينات أو المعادن إن وجدت)\n\n"
+            "**2. دواعي الاستخدام والفوائد الإكلينيكية:**\n"
+            "(الأسباب الطبية لتناوله والفوائد الموثقة لصحة الجسم، العين، المناعة، أو التمثيل الغذائي)\n\n"
+            "**3. إرشادات الجرعة وطريقة الاستخدام الصحيحة:**\n"
+            "(الجرعة النموذجية للبالغين، وأفضل توقيت مع الوجبات لشرب الماء ولتحسين امتصاص الفيتامينات الذائبة في الدهون وتجنب تهيج المعدة)\n\n"
+            "**4. موانع الاستخدام والتحذيرات والتعارضات الدوائية:**\n"
+            "(موانع الاستخدام، التداخلات مع مكملات أخرى مثل فيتامين أ أو حديد، الفصل مع أدوية الحموضة، وأمانه على الكلى والمعدة)\n"
+        )
+
+        # 1. Try Gemini
+        if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != "your-google-gemini-api-key-here":
+            try:
+                from google import genai
+                client = genai.Client(api_key=settings.GEMINI_API_KEY)
+                res = await client.aio.models.generate_content(
+                    model=settings.GEMINI_MODEL_NAME,
+                    contents=prompt,
+                )
+                if res and res.text and len(res.text.strip()) > 100:
+                    return res.text.strip()
+            except Exception as e:
+                logger.warning("Gemini drug consultation failed: %s. Trying Groq...", e)
+
+        # 2. Try Groq LLM
+        if settings.GROQ_API_KEY:
+            try:
+                import httpx
+                async with httpx.AsyncClient(timeout=30.0) as http_client:
+                    groq_res = await http_client.post(
+                        "https://api.groq.com/openai/v1/chat/completions",
+                        headers={"Authorization": f"Bearer {settings.GROQ_API_KEY}"},
+                        json={
+                            "model": settings.GROQ_LLM_MODEL or "qwen/qwen3.8-27b",
+                            "messages": [
+                                {
+                                    "role": "system",
+                                    "content": "أنت «صحتك AI» - استشاري الصيدلة الإكلينيكية واليقظة الدوائية في مصر. أجب بالعربية المصرية الطبية الرصينة بدون أي إيموجيز نهائياً.",
+                                },
+                                {"role": "user", "content": prompt},
+                            ],
+                            "temperature": 0.2,
+                            "max_tokens": 1200,
+                        },
+                    )
+                    if groq_res.status_code == 200:
+                        content = groq_res.json()["choices"][0]["message"]["content"].strip()
+                        if len(content) > 100:
+                            return content
+            except Exception as ge:
+                logger.warning("Groq drug consultation failed: %s", ge)
+
+        # 3. Deterministic Egyptian Pharmacological Knowledge Base Fallback
+        search_target = f"{med_names} {med_actives} {raw_user_note or ''}".lower()
+
+        if any(w in search_target for w in ["lutein", "لوتين", "centrum", "سنترم", "سنتروم"]):
+            return (
+                "**1. التعريف بالمستحضر والمواد الفعالة:**\n"
+                "- **المستحضر:** سنترم لوتين (Centrum with Lutein) / سنترم سيلفر.\n"
+                "- **التصنيف الطبي:** مكمل غذائي متكامل يحتوي على تركيبة متوازنة تضم 24 عنصراً من الفيتامينات الأساسية والمعادن النادرة، مدعمة بمركب **اللوتين (Lutein)**.\n"
+                "- **المادة المميزة (اللوتين):** صبغة كاروتينويدية ومضاد أكسدة طبيعي عالي التركيز يتراكم بشكل خاص في بقعة شبكية العين (Macula)، ليعمل كمرشح واقٍ من أضرار الضوء الأزرق والأكسدة الخلوية.\n\n"
+                "**2. دواعي الاستخدام والفوائد الإكلينيكية:**\n"
+                "- **حماية صحة العين والإبصار:** المساهمة الفعالة في تقليل مخاطر الضمور البقعي المرتبط بالعمر (AMD) وحماية شبكية العين من الإجهاد التأكسدي.\n"
+                "- **دعم الطاقة والحيوية اليومية:** بفضل احتوائه على فيتامينات مجموعة B المركبة (B1, B2, B6, B12, Niacin) التي تلعب دوراً محورياً في عمليات التمثيل الغذائي وإنتاج الطاقة من الغذاء.\n"
+                "- **تعزيز كفاءة الجهاز المناعي:** لاحتوائه على جرعات متوازنة من فيتامين C، وفيتامين E، والزنك، والسيلينيوم كمضادات أكسدة قوية.\n"
+                "- **الحفاظ على سلامة العظام والأسنان:** عبر تزويد الجسم بفيتامين D3 والكالسيوم والمغنيسيوم.\n\n"
+                "**3. إرشادات الجرعة وطريقة الاستخدام الصحيحة:**\n"
+                "- **الجرعة المعتادة للبالغين:** قرص واحد يومياً، ولا يجوز تجاوز الجرعة المقررة دون استشارة الطبيب.\n"
+                "- **التوقيت الأمثل لتناول الدواء:** يُفضل تناول القرص مباشرة بعد وجبة الإفطار أو وجبة الغداء مع كوب كامل من الماء.\n"
+                "- **نصيحة للامتصاص وتجنب اضطراب المعدة:** تناول المكمل مع وجبة تحتوي على قدر ضئيل من الدهون الصحية (مثل زيت الزيتون أو الزبادي) يرفع نسبة امتصاص الفيتامينات الذائبة في الدهون (A, D, E, K واللوتين)، ويقي من أي شعور بالغثيان أو انزعاج المعدة.\n\n"
+                "**4. موانع الاستخدام والتحذيرات والتعارضات الدوائية:**\n"
+                "- **تجنب الازدواج الدوائي:** يجب الامتناع عن أخذ مكملات أخرى تحتوي على فيتامين أ (Vitamin A) أو الحديد في نفس الوقت لتجنب التسمم بالتراكم الزائد (Hypervitaminosis).\n"
+                "- **الفصل عن أدوية الحموضة:** يُنصح بترك فاصل زمني لا يقل عن ساعتين بين سنترم وأدوية الحموضة (Antacids) أو مشتقات الألومنيوم والمغنيسيوم لتفادي تثبيط امتصاص المعادن والحديد.\n"
+                "- **مرضى القصور الكلوي:** يجب مراجعة الطبيب المعالج قبل الاستخدام لضبط معدلات المعادن الدقيقة وتفادي تراكمها.\n"
+                "- **الأمان الكلوي والمعدي:** يعد سنترم لوتين آمناً تماماً على الكلى والمعدة عند الالتزام بالجرعة اليومية الواحدة."
+            )
+        elif any(w in search_target for w in ["omega", "اوميجا", "أوميجا", "زيت سمك", "fish oil"]):
+            return (
+                "**1. التعريف بالمستحضر والمواد الفعالة:**\n"
+                "- **المستحضر:** أوميجا 3 بلس (Omega 3 Plus).\n"
+                "- **التصنيف:** أحماض دهنية أساسية غير مشبعة مستخلصة من زيت السمك النقي وغنية بحمضي EPA و DHA، مدعمة بزيت جنين القمح كمصدر طبيعي لفيتامين E.\n\n"
+                "**2. دواعي الاستخدام والفوائد الإكلينيكية:**\n"
+                "- **دعم صحة القلب والشرايين:** تحسين مستويات الدهون الثلاثية بالدم، الحفاظ على مرونة الأوعية الدموية، ودعم ضغط الدم الصحي.\n"
+                "- **تعزيز الوظائف الإدراكية والتركيز:** حمض DHA مكون بنيوي رئيسي لخلايا المخ والشبكية.\n"
+                "- **مضاد طبيعي للالتهاب:** يساعد في تخفيف آلام وتيبس المفاصل والتهابات الجسم المزمنة.\n\n"
+                "**3. إرشادات الجرعة وطريقة الاستخدام الصحيحة:**\n"
+                "- **الجرعة المعتادة للبالغين:** كبسولة إلى كبسولتين يومياً بعد الوجبة الرئيسية مع كوب كبير من الماء.\n"
+                "- يُفضل عدم تناولها على معدة خاوية لتقليل التجشؤ برائحة السمك وتحسين الامتصاص.\n\n"
+                "**4. موانع الاستخدام والتحذيرات والتعارضات الدوائية:**\n"
+                "- **الحذر مع مسيلات الدم:** الجرعات العالية (فوق 2000-3000 مجم يومياً) تمتلك تأثيراً خفيفاً مضاداً لتجمع الصفائح؛ لذا يجب استشارة الطبيب في حال تناول أدوية سيولة مثل وارفارين (ماريفان) أو بلافيكس.\n"
+                "- التوقف قبل العمليات الجراحية المجدولة بأسبوع إلى أسبوعين بعد التنسيق مع الجراح."
+            )
+        elif any(w in search_target for w in ["vidrop", "فيدروب", "ديفارول", "devarol", "فيتامين د", "vitamin d"]):
+            return (
+                "**1. التعريف بالمستحضر والمواد الفعالة:**\n"
+                "- **المستحضر:** فيدروب (Vidrop) / ديفارول (Devarol).\n"
+                "- **المادة الفعالة:** كوليكالسيفيرول (Cholecalciferol - Vitamin D3).\n\n"
+                "**2. دواعي الاستخدام والفوائد الإكلينيكية:**\n"
+                "- علاج والوقاية من نقص فيتامين د ولين العظام والكساح.\n"
+                "- تحفيز امتصاص الكالسيوم والفوسفور من الأمعاء لتقوية كثافة العظام والأسنان.\n"
+                "- تنظيم وتدعيم الاستجابة المناعية ضد العدوى التنفسية.\n\n"
+                "**3. إرشادات الجرعة وطريقة الاستخدام الصحيحة:**\n"
+                "- تعتمد الجرعة بدقة على نتائج تحليل الدم (25-OH Vitamin D).\n"
+                "- الجرعة الوقائية للبالغين: 600 - 1000 وحدة دولية يومياً (6 إلى 10 قطرات فيدروب)، أو وفق الخطة العلاجية المقررة من الطبيب.\n"
+                "- تؤخذ بعد وجبة دسمة تحتوي على دهون صحية لضمان أعلى نسبة امتصاص.\n\n"
+                "**4. موانع الاستخدام والتحذيرات والتعارضات الدوائية:**\n"
+                "- يمنع في حالات فرط كالسيوم الدم (Hypercalcemia) أو وجود حصوات كلوية كلسية نشطة.\n"
+                "- ضرورة فحص وظائف الكلى والكالسيوم دورياً في حال الاستخدام العلاجي بالجرعات العالية."
+            )
+        elif any(w in search_target for w in ["neurobion", "نيوروبيون", "milga", "ميلجا", "نيوروتون", "فيتامين ب"]):
+            return (
+                "**1. التعريف بالمستحضر والمواد الفعالة:**\n"
+                "- **المستحضر:** نيوروبيون (Neurobion) / ميلجا (Milga Advance).\n"
+                "- **المواد الفعالة:** فيتامين ب1 (ثيامين/بنفوتيامين) + فيتامين ب6 (بيريدوكسين) + فيتامين ب12 (سيانوكوبالامين).\n\n"
+                "**2. دواعي الاستخدام والفوائد الإكلينيكية:**\n"
+                "- علاج والوقاية من التهاب الأعصاب الطرفية (خصوصاً لمرضى السكري).\n"
+                "- تخفيف آلام العصب والوخز والتنميل في الأطراف.\n"
+                "- دعم تجدد غلاف المايلين المغذي للألياف العصبية وتصنيع كرات الدم الحمراء.\n\n"
+                "**3. إرشادات الجرعة وطريقة الاستخدام الصحيحة:**\n"
+                "- قرص واحد من مرة إلى مرتين يومياً بعد الأكل، أو حقنة عضلية كل يومين إلى ثلاثة أيام حسب توجيهات الطبيب.\n\n"
+                "**4. موانع الاستخدام والتحذيرات والتعارضات الدوائية:**\n"
+                "- مكملات فيتامينات ب الذائبة في الماء ذات أمان عالٍ جداً، ويتم التخلص من الفائض عبر البول دون إجهاد كلوي.\n"
+                "- قد يلاحظ المريض تغير لون البول إلى الأصفر الفاقع أو المائل للبرتقالي وهو أمر طبيعي تماماً وغير مقلق."
+            )
+        elif any(w in search_target for w in ["panadol", "بنادول", "باراسيتامول", "paracetamol", "paramol", "بارامول"]):
+            return (
+                "**1. التعريف بالمستحضر والمواد الفعالة:**\n"
+                "- **المستحضر:** بنادول (Panadol) / بارامول (Paramol).\n"
+                "- **المادة الفعالة:** باراسيتامول (Paracetamol / Acetaminophen) 500 مجم.\n\n"
+                "**2. دواعي الاستخدام والفوائد الإكلينيكية:**\n"
+                "- خافض للحرارة ومسكن للآلام الخفيفة والمتوسطة (الصداع، آلام الأسنان، ألم العضلات، وأعراض البرد).\n"
+                "- المسكن الأول الموصى به لمرضى الكلى وقرحة المعدة نظراً لعدم تثبيطه للبروستاغلاندينات الكلوية.\n\n"
+                "**3. إرشادات الجرعة وطريقة الاستخدام الصحيحة:**\n"
+                "- قرص إلى قرصين (500 - 1000 مجم) كل 6 إلى 8 ساعات عند اللزوم.\n"
+                "- الحد الأقصى المطلق للبالغين ذوي الكبد السليم هو 4000 مجم (8 أقراص) خلال 24 ساعة.\n\n"
+                "**4. موانع الاستخدام والتحذيرات والتعارضات الدوائية:**\n"
+                "- يحظر تجاوز الجرعة القصوى لتجنب التسمم الكبدي الحاد.\n"
+                "- يجب خفض الجرعة ومراجعة الطبيب لمرضى القصور الكبدي أو مدمني الكحول."
+            )
+        else:
+            return (
+                f"**1. التعريف بالمستحضر والمواد الفعالة:**\n"
+                f"- **المستحضر:** {med_names}.\n"
+                f"- **المكونات والتركيب:** {med_actives}.\n"
+                "- مستحضر صيدلاني مصرح به للاستخدام وفق إرشادات هيئة الدواء المصرية والنشرات الطبية المعتمدة.\n\n"
+                "**2. دواعي الاستخدام والفوائد الإكلينيكية:**\n"
+                "- يُستخدم المستحضر لتحقيق الأثر العلاجي أو الوقائي المستهدف بحسب تركيبته الصيدلانية، مع مراعاة الحالة الصحية العامة والتاريخ المرضي للمريض.\n\n"
+                "**3. إرشادات الجرعة وطريقة الاستخدام الصحيحة:**\n"
+                "- الالتزام الدقيق بالجرعة المقررة من الطبيب أو الصيدلي.\n"
+                "- يُنصح دائماً بتناول الأقراص والكبسولات مع كوب ماء كامل، والالتزام بمواعيد الجرعات دون مضاعفة الجرعة المنسية.\n\n"
+                "**4. موانع الاستخدام والتحذيرات والتعارضات الدوائية:**\n"
+                "- التأكد من عدم وجود حساسية سابقة تجاه أي من مكونات المستحضر.\n"
+                "- إبلاغ الطبيب المعالج بكافة الأدوية المزمنة والمكملات المتناولة لتفادي أي تداخلات دوائية غير مرغوبة."
+            )
 
     async def _generate_symptom_driven_triage_ar(
         self,
@@ -196,6 +412,7 @@ class TriageOrchestrator:
                                 {"role": "user", "content": prompt},
                             ],
                             "temperature": 0.2,
+                            "max_tokens": 1000,
                         },
                     )
                     if groq_res.status_code == 200:
@@ -279,6 +496,12 @@ class TriageOrchestrator:
             )
 
         is_renal_alert = bool(rule_eval.triggered_alerts)
+        is_drug_consultation = not is_renal_alert and bool(clean_meds) and (
+            not intake.symptoms or any(m.drug_class in {DrugClass.VITAMIN_SUPPLEMENT, DrugClass.OTHER, DrugClass.ANALGESIC} for m in clean_meds)
+        )
+
+        if is_drug_consultation and not intake.symptoms:
+            chief_complaint = f"Pharmacological & Dietary Supplement Review: {', '.join(m.brand_name for m in clean_meds)}"
 
         if is_renal_alert:
             correlations = " || ".join(a.clinical_finding_en for a in rule_eval.triggered_alerts)
@@ -300,6 +523,30 @@ class TriageOrchestrator:
                     "KDIGO AKI Guideline 2012: Chronic or high-dose NSAID usage induces severe renal hemodynamic impairment via COX-mediated prostaglandin inhibition.",
                     "WHO Safety Alert: Cumulative NSAID exposure without renal function monitoring poses high risk of silent tubular necrosis."
                 ]
+        elif is_drug_consultation:
+            correlations = (
+                f"Pharmacological and dietary supplement consultation for: {', '.join(m.brand_name for m in clean_meds)}. "
+                "Comprehensive review of active ingredients, antioxidant/micronutrient profile, "
+                "recommended dietary allowance (RDA), safe administration timing, and drug-drug interaction screen. "
+                "No critical organ toxicity or nephrotoxic flags identified."
+            )
+            badge = "[PHARMACOLOGICAL CONSULTATION - DRUG & SUPPLEMENT SAFETY]"
+            workup = [
+                "Medication reconciliation: ensure no duplicate multivitamin or concurrent high-dose fat-soluble vitamins (A, D, E, K)",
+                "Advise post-prandial administration with adequate fluids to enhance bioavailability of fat-soluble fractions and prevent GI upset",
+                "Ensure a 2-hour interval between multivitamin/mineral intake and oral antacids, iron supplements, or tetracyclines",
+                "Baseline Complete Blood Count (CBC) and 25-OH Vitamin D only if constitutional symptoms or fatigue are reported",
+                "Routine outpatient counseling; no acute emergency intervention required",
+            ]
+            guideline_ref = (
+                "Egyptian Drug Authority (EDA) Guidelines for Dietary Supplements; "
+                "NIH Office of Dietary Supplements (ODS) Clinical Fact Sheets; "
+                "WHO Guidelines on Micronutrients and Essential Nutrition Actions."
+            )
+            evidence_basis = [
+                "NIH ODS Fact Sheet: Balanced multivitamin-mineral formulations are safe when consumed within Established Upper Tolerable Intake Levels (UL).",
+                "EDA Pharmacovigilance Guidance: Post-prandial intake optimizes absorption of carotenoids and fat-soluble vitamins while minimizing gastric irritation."
+            ]
         else:
             correlations = (
                 "No deterministic chronic nephrotoxicity or drug-drug interaction alert triggered. "
