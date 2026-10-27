@@ -796,6 +796,34 @@ class TriageOrchestrator:
             mime_type=mime_type,
             caption=caption,
         )
+        if not extracted.medications and not extracted.symptoms:
+            return TriageOrchestratorResult(
+                session_id=session_id,
+                status="needs_input",
+                severity=TriageSeverity.MODERATE_CAUTION,
+                caregiver_response_ar=(
+                    "**تم استلام صورة علبة الدواء بنجاح.**\n"
+                    "--------------------------------------------------\n"
+                    "لتأكيد المادة الفعالة والجرعة ومراجعة تضارب الأدوية بدقة تامة، يرجى كتابة **اسم الدواء المطبوع على العلبة**، وهل المريض يعاني من أي أمراض مزمنة كأمراض الكلى أو الضغط؟"
+                ),
+                caregiver_response_en="Medication packaging photo received. Please confirm the brand name written on the box to cross-reference drug safety.",
+                hospital_report_ar="[تم استلام صورة مستحضر دوائي قيد تأكيد الاسم التجاري والجرعة]",
+                emergency_report_en="[Medication packaging image uploaded; pending brand name confirmation]",
+                pdf_report_path=None,
+                pdf_report_path_ar=None,
+                intake_snapshot=extracted,
+                rule_evaluation=RuleEngineEvaluation(
+                    overall_severity=TriageSeverity.MODERATE_CAUTION,
+                    halt_for_clarification=False,
+                    clarification_prompt_ar="ما هو اسم الدواء المكتوب على العلبة؟",
+                    triggered_alerts=[],
+                    normalized_medications=[],
+                    urgent_labs_consolidated=[],
+                ),
+                grounded_evidence=None,
+                degradation=None,
+            )
+
         return await self.process_Session_and_orchestrate(
             session_id=session_id,
             incoming_intake=extracted,

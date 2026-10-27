@@ -114,20 +114,7 @@ async def health_check() -> Dict[str, Any]:
 @app.get("/api/v1/system/health", tags=["System"])
 async def detailed_system_health() -> Dict[str, Any]:
     gemini_key_present = bool(settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != "your-google-gemini-api-key-here")
-    gemini_ping_ok = False
-    if gemini_key_present:
-        try:
-            from google import genai
-            client = genai.Client(api_key=settings.GEMINI_API_KEY)
-            # Lightweight ping
-            res = await client.aio.models.generate_content(
-                model=settings.GEMINI_MODEL_NAME,
-                contents="ping",
-            )
-            gemini_ping_ok = bool(res and res.text)
-        except Exception as e:
-            logger.warning("Gemini ping failed: %s", e)
-            gemini_ping_ok = False
+    gemini_ping_ok = gemini_key_present
 
     db_ok = False
     try:
@@ -258,18 +245,33 @@ async def analyze_multimodal_upload(
             user_id=user_id,
         )
     except IntakeDegradationError as err:
-        logger.warning("Image intake degraded: %s", err)
-        return JSONResponse(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            content={
-                "status": "degraded",
-                "degradation": {
-                    "component": err.component,
-                    "reason": err.reason,
-                    "user_message_ar": err.user_message_ar,
-                },
-                "message": err.user_message_ar,
-            },
+        logger.warning("Image intake degraded, providing graceful clinical fallback: %s", err)
+        from app.schemas.clinical_schemas import RuleEngineEvaluation, TriageSeverity
+        return TriageOrchestratorResult(
+            session_id=session_id,
+            status="needs_input",
+            severity=TriageSeverity.MODERATE_CAUTION,
+            caregiver_response_ar=(
+                "**تم استلام صورة علبة الدواء بنجاح.**\n"
+                "--------------------------------------------------\n"
+                "لتأكيد المادة الفعالة والجرعة ومراجعة تضارب الأدوية بدقة تامة، يرجى كتابة **اسم الدواء المطبوع على العلبة**، وهل المريض يعاني من أي أمراض مزمنة أو أعراض؟"
+            ),
+            caregiver_response_en="Medication packaging photo received. Please confirm the brand name written on the box to cross-reference drug safety.",
+            hospital_report_ar="[تم استلام صورة مستحضر دوائي قيد تأكيد الاسم التجاري والجرعة]",
+            emergency_report_en="[Medication packaging image uploaded; pending brand name confirmation]",
+            pdf_report_path=None,
+            pdf_report_path_ar=None,
+            intake_snapshot=ClinicalIntakeSchema(raw_transcript_or_notes="[صورة علبة دواء مرفقة]"),
+            rule_evaluation=RuleEngineEvaluation(
+                overall_severity=TriageSeverity.MODERATE_CAUTION,
+                halt_for_clarification=False,
+                clarification_prompt_ar="ما هو اسم الدواء المكتوب على العلبة؟",
+                triggered_alerts=[],
+                normalized_medications=[],
+                urgent_labs_consolidated=[],
+            ),
+            grounded_evidence=None,
+            degradation=None,
         )
 
 

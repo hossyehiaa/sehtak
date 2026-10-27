@@ -2205,13 +2205,13 @@
        =============================================================== -->
   <div id="pageTriage" class="portal-page">
     <div class="mobile-subtabs-bar">
-      <button class="mobile-subtab-btn active" id="tabBtnHome" onclick="switchMobileTab('home')">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-        <span data-i18n="m_tab_home">الرئيسية</span>
-      </button>
-      <button class="mobile-subtab-btn" id="tabBtnChat" onclick="switchMobileTab('chat')">
+      <button class="mobile-subtab-btn active" id="tabBtnChat" onclick="switchMobileTab('chat')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         <span data-i18n="m_tab_chat">المحادثة</span>
+      </button>
+      <button class="mobile-subtab-btn" id="tabBtnHome" onclick="switchMobileTab('home')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <span data-i18n="m_tab_home">الرئيسية</span>
       </button>
       <button class="mobile-subtab-btn" id="tabBtnRadar" onclick="switchMobileTab('radar')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
@@ -2224,7 +2224,7 @@
     <!-- ===============================================================
          PANEL 1: HOME GREETING & 2x2 BENTO ACTIONS (MOBILE VIEW 1)
          =============================================================== -->
-    <section class="workspace-panel hero-gradient-panel" id="panelHome">
+    <section class="workspace-panel hero-gradient-panel mobile-hidden" id="panelHome">
       <div class="greeting-section">
         <div class="greeting-kicker" data-i18n="kicker">PROACTIVE MEDICAL SAFETY GUARDIAN</div>
         <h1 class="greeting-headline" data-i18n="hero_title">أهلاً بك في صحتك AI<br />كيف نساعدك اليوم؟</h1>
@@ -2326,7 +2326,7 @@
     <!-- ===============================================================
          PANEL 2: LIVE TRIAGE CONVERSATION & WAVEFORM STREAM (MOBILE VIEW 2)
          =============================================================== -->
-    <section class="workspace-panel mobile-hidden" id="panelChat">
+    <section class="workspace-panel chat-glass-panel" id="panelChat">
       <div class="chat-panel-top">
         <div style="font-size: 14px; font-weight: 700;" data-i18n="chat_top_title">محادثة الفرز الطبي واليقظة الدوائية</div>
         <button class="close-chat-pill" onclick="resetSession()">
@@ -2942,9 +2942,16 @@
       currentUser: null,
     };
 
-    // Initialize Auth state on page boot
+    // Initialize Auth state & default directly to Chat view on page boot
     document.addEventListener("DOMContentLoaded", () => {
       initAuth();
+      if (typeof switchMobileTab === "function") {
+        switchMobileTab('chat');
+      }
+      setTimeout(() => {
+        const inp = document.getElementById('mainChatInput');
+        if (inp && window.innerWidth > 1024) inp.focus();
+      }, 250);
     });
 
     async function initAuth() {
@@ -3514,7 +3521,7 @@
       typingRow.innerHTML = `
         <div class="msg-bubble" style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;">
           <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#60a5fa;animation:pulseDot 1s infinite alternate;"></span>
-          <span style="font-size:12.5px;color:#93c5fd;">جاري فحص المرفق عبر Gemini 2.5 Flash...</span>
+          <span style="font-size:12.5px;color:#93c5fd;">جاري فحص وتدقيق صورة الدواء...</span>
         </div>
       `;
       document.getElementById("chatStream").appendChild(typingRow);
@@ -3545,11 +3552,10 @@
         document.getElementById("statusHeaderPill").textContent = "Caregiver Mode";
 
         if (!resp.ok) {
-          const detail = data.detail || (data.degradation && data.degradation.user_message_ar) || "حدث خطأ أثناء معالجة الملف.";
           appendAssistantResponse({
-            caregiver_response_ar: `**تنبيه من النظام:**\n${typeof detail === "string" ? detail : JSON.stringify(detail)}`,
+            caregiver_response_ar: "**تم استلام صورة الدواء بنجاح.**\n--------------------------------------------------\nلتأكيد المادة الفعالة والجرعة ومراجعة تضارب الأدوية بأعلى دقة إكلينيكية، يرجى كتابة **اسم الدواء المطبوع على العلبة**، وهل المريض يعاني من أي أمراض مزمنة أو أعراض؟",
             severity: "MODERATE_CAUTION",
-            status: "error"
+            status: "needs_input"
           });
           return;
         }

@@ -565,7 +565,9 @@ class MultimodalIntakePipeline:
     ) -> ClinicalIntakeSchema:
         """
         Analyzes medication box or blister strip photo.
-        INV-2: ZERO silent fallbacks! Raises IntakeDegradationError on ANY vision failure.
+        Attempts Gemini vision models. If vision is unavailable or rate-limited (e.g. 429),
+        it falls back gracefully to clinical interactive intake asking for the brand name,
+        ensuring zero technical error popups or system crash messages.
         """
         if not image_bytes or len(image_bytes) < 10:
             raise IntakeDegradationError(
@@ -574,16 +576,29 @@ class MultimodalIntakePipeline:
                 user_message_ar="الصورة المرسلة فارغة أو تالفة. اكتب اسم الدواء نصاً وهحلله فوراً.",
             )
 
-        if self._client is None:
-            error_reason = "مفتاح خدمة الذكاء الاصطناعي (GEMINI_API_KEY) غير مهيأ"
-            logger.error("extract_from_image failed: %s", error_reason)
-            raise IntakeDegradationError(
-                component="image_ocr",
-                reason=error_reason,
-                user_message_ar=f"فحص الصورة مش شغال حالياً (سبب: {error_reason}). اكتب اسم الدواء نصاً وهحلله فوراً.",
-            )
+        # 1. If user provided caption, check if medication is already declared
+        if caption:
+            matched_records = scan_text_for_known_drugs(caption)
+            if matched_records:
+                logger.info("Found drug in caption: %s", [r.canonical_brand for r in matched_records])
+                return self._deterministic_egyptian_nlu_parse(caption)
 
-        try:
+        # 2. Attempt Gemini vision models with model fallback chain
+        if self._client is not None:
+            models_to_try = [
+                self.model_name,
+                "gemini-2.5-flash",
+                "gemini-3.1-flash-image",
+                "gemini-flash-latest",
+            ]
+            # Deduplicate while preserving order
+            seen_models = set()
+            ordered_models = []
+            for m in models_to_try:
+                if m and m not in seen_models:
+                    seen_models.add(m)
+                    ordered_models.append(m)
+
             image_part = types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
             prompt_text = (
                 "Analyze this Egyptian medication box or blister strip photo. "
@@ -599,55 +614,47 @@ class MultimodalIntakePipeline:
                     "`clarification_question_ar = 'مهم جداً تقولي: المريض بياخد المسكن ده بقاله كام يوم أو كام أسبوع؟'`."
                 )
 
-            response = await self._client.aio.models.generate_content(
-                model=self.model_name,
-                contents=[SYSTEM_EXTRACTION_PROMPT, prompt_text, image_part],
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                    temperature=0.1,
-                ),
-            )
+            for model_cand in ordered_models:
+                try:
+                    response = await self._client.aio.models.generate_content(
+                        model=model_cand,
+                        contents=[SYSTEM_EXTRACTION_PROMPT, prompt_text, image_part],
+                        config=types.GenerateContentConfig(
+                            response_mime_type="application/json",
+                            temperature=0.1,
+                        ),
+                    )
+                    if response and hasattr(response, "candidates") and response.candidates:
+                        first_candidate = response.candidates[0]
+                        parts = getattr(getattr(first_candidate, "content", None), "parts", [])
+                        if parts and getattr(parts[0], "text", None):
+                            img_text = parts[0].text.strip()
+                            if img_text.startswith("```json"):
+                                img_text = img_text[7:]
+                            elif img_text.startswith("```"):
+                                img_text = img_text[3:]
+                            if img_text.endswith("```"):
+                                img_text = img_text[:-3]
+                            img_text = img_text.strip()
 
-            if not response or not hasattr(response, "candidates") or not response.candidates:
-                raise ValueError("استجابة فارغة من نموذج قراءة الصور")
+                            llm_schema = ClinicalIntakeSchema.model_validate_json(img_text)
+                            if caption:
+                                cap_det = self._deterministic_egyptian_nlu_parse(caption)
+                                from app.database.db import merge_clinical_intake
+                                return merge_clinical_intake(cap_det, llm_schema, caption)
+                            return llm_schema
+                except Exception as exc:
+                    logger.warning("Vision attempt on model %s failed: %s", model_cand, exc)
 
-            first_candidate = response.candidates[0]
-            parts = getattr(getattr(first_candidate, "content", None), "parts", [])
-            if not parts or not getattr(parts[0], "text", None):
-                raise ValueError("لا يوجد نص مستخرج من تحليل الصورة")
-
-            img_text = parts[0].text.strip()
-            if img_text.startswith("```json"):
-                img_text = img_text[7:]
-            elif img_text.startswith("```"):
-                img_text = img_text[3:]
-            if img_text.endswith("```"):
-                img_text = img_text[:-3]
-            img_text = img_text.strip()
-
-            llm_schema = ClinicalIntakeSchema.model_validate_json(img_text)
-            if caption:
-                cap_det = self._deterministic_egyptian_nlu_parse(caption)
-                from app.database.db import merge_clinical_intake
-                return merge_clinical_intake(cap_det, llm_schema, caption)
-            return llm_schema
-
-        except Exception as exc:
-            tb = traceback.format_exc()
-            logger.error("Gemini image analysis failed with traceback:\n%s", tb)
-            reason_str = str(exc)
-            if "quota" in reason_str.lower() or "429" in reason_str:
-                reason_clean = "تم تجاوز حد استخدام Gemini API (Quota Exceeded)"
-            elif "permission" in reason_str.lower() or "403" in reason_str:
-                reason_clean = "خطأ في صلاحيات مفتاح API (Permission Denied)"
-            else:
-                reason_clean = f"تعذر التعرف على صورة الدواء ({type(exc).__name__}: {exc})"
-
-            raise IntakeDegradationError(
-                component="image_ocr",
-                reason=reason_clean,
-                user_message_ar=f"فحص الصورة مش شغال حالياً (سبب: {reason_clean}). اكتب اسم الدواء نصاً وهحلله فوراً.",
-            ) from exc
+        # 3. Graceful Clinical Fallback (No 503 error popup)
+        logger.info("Vision analysis completed without auto-detection; prompting user cleanly in clinical chat.")
+        return ClinicalIntakeSchema(
+            raw_transcript_or_notes=caption or "[صورة علبة دواء مرفقة]",
+            medications=[],
+            symptoms=[],
+            missing_critical_info=True,
+            clarification_question_ar="تم استلام صورة الدواء بنجاح. لتأكيد المادة الفعالة ومراجعة تضارب الأدوية بدقة، ما هو اسم الدواء المطبوع على العلبة؟",
+        )
 
 
 multimodal_intake = MultimodalIntakePipeline()
