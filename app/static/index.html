@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" href="/static/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg-slate-950: #050811;
@@ -1744,6 +1744,52 @@
       color: var(--text-secondary);
     }
 
+  
+    /* Bilingual Language Toggle (English / Arabic) */
+    .lang-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: var(--text-primary);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-out-expo);
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .lang-toggle-btn:hover {
+      background: rgba(37, 99, 235, 0.25);
+      border-color: rgba(96, 165, 250, 0.45);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .lang-toggle-btn:active {
+      transform: scale(0.95);
+    }
+
+    html[dir="ltr"] {
+      text-align: left;
+    }
+
+    html[dir="ltr"] .scenario-btn,
+    html[dir="ltr"] .bento-card,
+    html[dir="ltr"] .dock-input {
+      text-align: left;
+    }
+
+    html[dir="ltr"] .drug-notes {
+      border-right: none;
+      border-left: 3px solid #3b82f6;
+    }
+
   </style>
 </head>
 <body>
@@ -1762,7 +1808,7 @@
         <img src="/static/logo.png" alt="Sehtak AI" class="brand-logo" />
         <div>
           <div class="brand-name">Sehtak AI</div>
-          <div class="brand-tagline">نظام السلامة الدوائية والفرز الطبي الذكي</div>
+          <div class="brand-tagline" data-i18n="brand_tagline">نظام السلامة الدوائية والفرز الطبي الذكي</div>
         </div>
       </div>
     </div>
@@ -1772,23 +1818,34 @@
     <nav class="portal-nav-bar hide-mobile" id="portalNavBar">
       <button class="portal-nav-link active" id="navLinkTriage" onclick="navigateToPage('triage')">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
-        <span>الفرز والاستشارة</span>
+        <span data-i18n="nav_triage">الفرز والاستشارة</span>
       </button>
       <button class="portal-nav-link" id="navLinkRecords" onclick="navigateToPage('records')">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-        <span>سجل الفحوصات والتقارير</span>
+        <span data-i18n="nav_records">سجل الفحوصات والتقارير</span>
       </button>
       <button class="portal-nav-link" id="navLinkDrugs" onclick="navigateToPage('drugs')">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-        <span>دليل الأدوية المصرية</span>
+        <span data-i18n="nav_drugs">دليل الأدوية المصرية</span>
       </button>
       <button class="portal-nav-link" id="navLinkProfile" onclick="navigateToPage('profile')">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-        <span>الملف الصحي وحسابي</span>
+        <span data-i18n="nav_profile">الملف الصحي وحسابي</span>
       </button>
     </nav>
 
     <div class="header-left">
+
+      <!-- Language Switcher Pill -->
+      <button class="lang-toggle-btn" id="langToggleBtn" onclick="toggleLanguage()" title="Switch Language / تغيير اللغة">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+        <span id="langToggleLabel">EN</span>
+      </button>
+
       <div id="authHeaderContainer">
         <button class="auth-btn" onclick="openAuthModal('login')">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -1796,7 +1853,7 @@
         </button>
       </div>
       <a href="/docs" target="_blank" class="nav-ghost-btn hide-mobile">API Docs</a>
-      <button class="nav-ghost-btn hide-mobile" onclick="resetSession()">تصفير الجلسة</button>
+      <button class="nav-ghost-btn hide-mobile" onclick="resetSession()" data-i18n="reset_session">تصفير الجلسة</button>
       <div class="guardian-mode-pill" onclick="triggerScenario('silent_aki')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
@@ -1825,28 +1882,23 @@
          =============================================================== -->
     <section class="workspace-panel hero-gradient-panel" id="panelHome">
       <div class="greeting-section">
-        <div class="greeting-kicker">PROACTIVE MEDICAL SAFETY GUARDIAN</div>
-        <h1 class="greeting-headline">
-          أهلاً بك في صحتك AI<br />
-          كيف نساعدك اليوم؟
-        </h1>
-        <p class="greeting-subtitle">
-          حماية استباقية من المضاعفات الصامتة للمسكنات وتضارب الأدوية المزمنة، مع إصدار تقارير طوارئ معتمدة باللغتين العربية والإنجليزية.
-        </p>
+        <div class="greeting-kicker" data-i18n="kicker">PROACTIVE MEDICAL SAFETY GUARDIAN</div>
+        <h1 class="greeting-headline" data-i18n="hero_title">أهلاً بك في صحتك AI<br />كيف نساعدك اليوم؟</h1>
+        <p class="greeting-subtitle" data-i18n="hero_subtitle">حماية استباقية من المضاعفات الصامتة للمسكنات وتضارب الأدوية المزمنة، مع إصدار تقارير طوارئ معتمدة باللغتين العربية والإنجليزية.</p>
 
         <div class="scenarios-block">
-          <span class="scenarios-label">نماذج محاكاة إكلينيكية فورية:</span>
+          <span class="scenarios-label" data-i18n="scenarios_label">نماذج محاكاة إكلينيكية فورية:</span>
           <div class="scenarios-list">
             <button class="scenario-btn" onclick="triggerScenario('rule2_guardrail')">
-              <span>اختبار حارس المدة المفقودة (Rule 2 Guardrail)</span>
+              <span data-i18n="scenario_1">اختبار حارس المدة المفقودة (Rule 2 Guardrail)</span>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </button>
             <button class="scenario-btn" onclick="triggerScenario('silent_aki')">
-              <span>سيناريو كتافلام 60 يوم مع ألم الذراع والإرهاق (Silent AKI)</span>
+              <span data-i18n="scenario_2">سيناريو كتافلام 60 يوم مع ألم الذراع والإرهاق (Silent AKI)</span>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </button>
             <button class="scenario-btn" onclick="triggerScenario('triple_whammy')">
-              <span>سيناريو تفاعل أدوية الضغط ومدرات البول مع المسكنات (Triple Whammy)</span>
+              <span data-i18n="scenario_3">سيناريو تفاعل أدوية الضغط ومدرات البول مع المسكنات (Triple Whammy)</span>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </button>
           </div>
@@ -1908,7 +1960,7 @@
             </div>
             <div>
               <div class="bento-title">تقرير المستشفى PDF</div>
-              <div class="bento-caption">نسخة عربية ونسخة إنجليزية</div>
+              <div class="bento-caption" data-i18n="bento_report_desc">نسخة عربية ونسخة إنجليزية</div>
             </div>
           </div>
         </div>
@@ -1920,9 +1972,9 @@
          =============================================================== -->
     <section class="workspace-panel mobile-hidden" id="panelChat">
       <div class="chat-panel-top">
-        <div style="font-size: 14px; font-weight: 700;">محادثة الفرز الطبي واليقظة الدوائية</div>
+        <div style="font-size: 14px; font-weight: 700;" data-i18n="chat_top_title">محادثة الفرز الطبي واليقظة الدوائية</div>
         <button class="close-chat-pill" onclick="resetSession()">
-          <span>✕ إغلاق وبدء محادثة جديدة</span>
+          <span data-i18n="chat_close_btn">✕ إغلاق وبدء محادثة جديدة</span>
         </button>
       </div>
 
@@ -1979,7 +2031,7 @@
           type="text"
           id="mainChatInput"
           class="dock-input"
-          placeholder="اكتب الأعراض أو اسم الدواء أو المدة الزمنية..."
+          placeholder="اكتب الأعراض أو اسم الدواء أو المدة الزمنية..." data-i18n="chat_placeholder"
           onkeydown="if(event.key==='Enter') sendFromInput('mainChatInput')"
         />
         <button class="dock-icon-btn" id="chatMicBtn" onclick="toggleVoiceRecording()" title="تسجيل صوتي">
@@ -2005,7 +2057,7 @@
       <div>
         <div class="radar-header">
           <div>
-            <div class="radar-title">لوحة التقييم الإكلينيكي وتقارير المستشفى</div>
+            <div class="radar-title" data-i18n="radar_title">لوحة التقييم الإكلينيكي وتقارير المستشفى</div>
             <div class="radar-sub">Deterministic Rules + KDIGO / NICE Guidelines</div>
           </div>
           <span class="severity-tag" id="severityBadge">READY</span>
@@ -2087,16 +2139,16 @@
     <div class="portal-content-wrapper">
       <div class="page-header-row">
         <div class="page-title-block">
-          <h2>سجل الفحوصات والتقارير الطبية</h2>
-          <p>أرشيف الحالات الإكلينيكية المسجلة مع إمكانية إعادة تحميل تقارير الطوارئ والفرز (PDF).</p>
+          <h2 data-i18n="records_title">سجل الفحوصات والتقارير الطبية</h2>
+          <p data-i18n="records_subtitle">أرشيف الحالات الإكلينيكية المسجلة مع إمكانية إعادة تحميل تقارير الطوارئ والفرز (PDF).</p>
         </div>
         <div style="display:flex;gap:10px;">
           <button class="record-btn ar-pdf" onclick="loadPatientRecords()" style="max-width:140px;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg>
-            <span>تحديث السجل</span>
+            <span data-i18n="records_refresh">تحديث السجل</span>
           </button>
           <button class="drug-triage-btn" onclick="navigateToPage('triage')" style="max-width:160px;">
-            <span>بدء فحص جديد</span>
+            <span data-i18n="records_new">بدء فحص جديد</span>
           </button>
         </div>
       </div>
@@ -2117,12 +2169,12 @@
     <div class="portal-content-wrapper">
       <div class="page-header-row">
         <div class="page-title-block">
-          <h2>دليل الأدوية المصرية واليقظة الدوائية</h2>
-          <p>قاعدة معرفية معتمدة للأدوية الشائعة في مصر مع رصد مخاطر الكلى وقرحة المعدة والبدائل الآمنة.</p>
+          <h2 data-i18n="drugs_title">دليل الأدوية المصرية واليقظة الدوائية</h2>
+          <p data-i18n="drugs_subtitle">قاعدة معرفية معتمدة للأدوية الشائعة في مصر مع رصد مخاطر الكلى وقرحة المعدة والبدائل الآمنة.</p>
         </div>
         <div class="db-badge-online">
           <span class="db-dot"></span>
-          <span>16 دواء معتمد في قاعدة البيانات</span>
+          <span data-i18n="drugs_count_badge">16 دواء معتمد في قاعدة البيانات</span>
         </div>
       </div>
 
@@ -2130,7 +2182,7 @@
         type="text"
         id="drugSearchInput"
         class="drugs-search-bar"
-        placeholder="ابحث باسم الدواء التجاري أو المادة الفعالة (مثال: كتافلام، بروفين، كيتوفان، فانتومور)..."
+        placeholder="ابحث باسم الدواء التجاري أو المادة الفعالة (مثال: كتافلام، بروفين، كيتوفان، فانتومور)..." data-i18n="drugs_search_placeholder"
         oninput="handleDrugSearch(this.value)"
       />
 
@@ -2155,12 +2207,12 @@
     <div class="portal-content-wrapper">
       <div class="page-header-row">
         <div class="page-title-block">
-          <h2>الملف الصحي الشخصي وحسابي</h2>
-          <p>إدارة بيانات الحساب وحفظ الأمراض المزمنة لتوجيه الفرز الطبي بدقة متناهية.</p>
+          <h2 data-i18n="profile_title">الملف الصحي الشخصي وحسابي</h2>
+          <p data-i18n="profile_subtitle">إدارة بيانات الحساب وحفظ الأمراض المزمنة لتوجيه الفرز الطبي بدقة متناهية.</p>
         </div>
         <div class="db-badge-online">
           <span class="db-dot"></span>
-          <span>قاعدة البيانات متصلة (SQLite Async & JWT)</span>
+          <span data-i18n="db_connected_badge">قاعدة البيانات متصلة (SQLite Async & JWT)</span>
         </div>
       </div>
 
@@ -2169,7 +2221,7 @@
         <div class="profile-card">
           <h3>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            <span>بيانات الحساب والتوثيق</span>
+            <span data-i18n="account_details_title">بيانات الحساب والتوثيق</span>
           </h3>
 
           <div style="display:flex;flex-direction:column;gap:12px;" id="profileAccountDetails">
@@ -2197,7 +2249,7 @@
         <div class="profile-card">
           <h3>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
-            <span>الأمراض المزمنة المحفوظة للمريض</span>
+            <span data-i18n="chronic_conditions_title">الأمراض المزمنة المحفوظة للمريض</span>
           </h3>
           <p style="font-size:12.5px;color:var(--text-secondary);line-height:1.5;">
             تحديد الأمراض المزمنة مسبقاً يساعد خوارزميات السلامة الدوائية ومحرك الفرز في إطلاق التحذيرات المناسبة فوراً (مثل تحذير Triple Whammy لمرضى الضغط والكلى).
@@ -2235,7 +2287,7 @@
         <div class="profile-card" style="grid-column: 1 / -1;">
           <h3>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-            <span>أرقام الطوارئ واليقظة الدوائية الرسمية في مصر</span>
+            <span data-i18n="emergency_contacts_title">أرقام الطوارئ واليقظة الدوائية الرسمية في مصر</span>
           </h3>
           <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:14px;">
             <div style="background:rgba(244,63,94,0.1);border:1px solid rgba(244,63,94,0.25);border-radius:10px;padding:14px;display:flex;align-items:center;justify-content:space-between;">
@@ -2385,6 +2437,134 @@
   <input type="file" id="audioUploadInput" accept="audio/*,.ogg,.mp3,.wav,.m4a" onchange="handleFileUpload(this, 'audio')" />
 
   <script>
+    
+    /* =========================================================================
+       BILINGUAL I18N SYSTEM (Arabic & English)
+       ========================================================================= */
+    const I18N = {
+      ar: {
+        brand_tagline: "نظام السلامة الدوائية والفرز الطبي الذكي",
+        nav_triage: "الفرز والاستشارة",
+        nav_records: "سجل الفحوصات والتقارير",
+        nav_drugs: "دليل الأدوية المصرية",
+        nav_profile: "الملف الصحي وحسابي",
+        reset_session: "تصفير الجلسة",
+        kicker: "PROACTIVE MEDICAL SAFETY GUARDIAN",
+        hero_title: "أهلاً بك في صحتك AI<br />كيف نساعدك اليوم؟",
+        hero_subtitle: "حماية استباقية من المضاعفات الصامتة للمسكنات وتضارب الأدوية المزمنة، مع إصدار تقارير طوارئ معتمدة باللغتين العربية والإنجليزية.",
+        scenarios_label: "نماذج محاكاة إكلينيكية فورية:",
+        scenario_1: "اختبار حارس المدة المفقودة (Rule 2 Guardrail)",
+        scenario_2: "سيناريو كتافلام 60 يوم مع ألم الذراع والإرهاق (Silent AKI)",
+        scenario_3: "سيناريو تفاعل أدوية الضغط ومدرات البول مع المسكنات (Triple Whammy)",
+        bento_voice_title: "تسجيل صوتي باللهجة المصرية",
+        bento_voice_desc: "فهم إكلينيكي دقيق واستخلاص للأعراض",
+        bento_camera_title: "تصوير علبة أو شريط دواء",
+        bento_camera_desc: "رصد الاسم والجرعة بالذكاء البصري",
+        bento_report_title: "إصدار تقرير طوارئ طبي PDF",
+        bento_report_desc: "نسخة عربية ونسخة إنجليزية",
+        bento_safe_title: "استشارة أمان دوائي وقائي",
+        bento_safe_desc: "كشف مبكر لقصور الكلى وتفاعلات الأدوية",
+        chat_top_title: "محادثة الفرز الطبي واليقظة الدوائية",
+        chat_close_btn: "✕ إغلاق وبدء محادثة جديدة",
+        chat_placeholder: "اكتب الأعراض أو اسم الدواء أو المدة الزمنية...",
+        radar_title: "لوحة التقييم الإكلينيكي وتقارير المستشفى",
+        download_ar_pdf: "تحميل التقرير بالعربية (للمستشفى) PDF",
+        download_en_pdf: "Download English ER Summary PDF",
+        records_title: "سجل الفحوصات والتقارير الطبية",
+        records_subtitle: "أرشيف الحالات الإكلينيكية المسجلة مع إمكانية إعادة تحميل تقارير الطوارئ والفرز (PDF).",
+        records_refresh: "تحديث السجل",
+        records_new: "بدء فحص جديد",
+        drugs_title: "دليل الأدوية المصرية واليقظة الدوائية",
+        drugs_subtitle: "قاعدة معرفية معتمدة للأدوية الشائعة في مصر مع رصد مخاطر الكلى وقرحة المعدة والبدائل الآمنة.",
+        drugs_count_badge: "16 دواء معتمد في قاعدة البيانات",
+        drugs_search_placeholder: "ابحث باسم الدواء التجاري أو المادة الفعالة (مثال: كتافلام، بروفين، كيتوفان، فانتومور)...",
+        profile_title: "الملف الصحي الشخصي وحسابي",
+        profile_subtitle: "إدارة بيانات الحساب وحفظ الأمراض المزمنة لتوجيه الفرز الطبي بدقة متناهية.",
+        db_connected_badge: "قاعدة البيانات متصلة (SQLite Async & JWT)",
+        account_details_title: "بيانات الحساب والتوثيق",
+        chronic_conditions_title: "الأمراض المزمنة المحفوظة للمريض",
+        emergency_contacts_title: "أرقام الطوارئ واليقظة الدوائية الرسمية في مصر"
+      },
+      en: {
+        brand_tagline: "Proactive Medical Safety & Triage Guardian",
+        nav_triage: "Clinical Triage",
+        nav_records: "Patient Records",
+        nav_drugs: "Drug Compendium",
+        nav_profile: "Health Profile & Account",
+        reset_session: "Reset Session",
+        kicker: "PROACTIVE MEDICAL SAFETY GUARDIAN",
+        hero_title: "Welcome to Sehtak AI<br />How can we safeguard you today?",
+        hero_subtitle: "Proactive prevention of silent drug-induced kidney injury and polypharmacy complications, generating bilingual ER-grade emergency reports.",
+        scenarios_label: "Clinical Instant Simulations:",
+        scenario_1: "Missing Duration Guardrail (Rule 2)",
+        scenario_2: "Chronic Cataflam 60 Days with Arm Pain & Fatigue (Silent AKI)",
+        scenario_3: "NSAID + ACE-i + Diuretic Interaction (Triple Whammy)",
+        bento_voice_title: "Egyptian Voice Intake",
+        bento_voice_desc: "Precise clinical understanding and symptom extraction",
+        bento_camera_title: "Medication Box / Strip Photo",
+        bento_camera_desc: "Visual detection of brand name, ingredient & dosage",
+        bento_report_title: "Generate Emergency Triage PDF",
+        bento_report_desc: "Arabic hospital report & English ER summary",
+        bento_safe_title: "Preventive Medication Safety",
+        bento_safe_desc: "Early detection of renal failure & contraindications",
+        chat_top_title: "Clinical Triage & Pharmacovigilance Chat",
+        chat_close_btn: "✕ Clear & Start New Session",
+        chat_placeholder: "Describe symptoms, medications, or duration...",
+        radar_title: "Clinical Triage & Hospital Workup Panel",
+        download_ar_pdf: "Download Arabic Hospital Report PDF",
+        download_en_pdf: "Download English ER Summary PDF",
+        records_title: "Patient Clinical Records & Reports",
+        records_subtitle: "Archived clinical triage sessions with instant bilingual PDF downloads.",
+        records_refresh: "Refresh Archive",
+        records_new: "New Triage Intake",
+        drugs_title: "Egyptian Drug Compendium & Safety",
+        drugs_subtitle: "Validated Egyptian medication catalog tracking renal & GI bleed risks with safe alternatives.",
+        drugs_count_badge: "16 Authorized Medications in Database",
+        drugs_search_placeholder: "Search by brand name or active ingredient (e.g. Cataflam, Brufen, Ketofan)...",
+        profile_title: "Personal Health Profile & Account",
+        profile_subtitle: "Manage account settings and persist chronic health history for personalized safety checks.",
+        db_connected_badge: "Database Connected (SQLite Async & JWT)",
+        account_details_title: "Account Details & Authentication",
+        chronic_conditions_title: "Persisted Chronic Conditions",
+        emergency_contacts_title: "Official Egyptian Emergency & Pharmacovigilance Hotlines"
+      }
+    };
+
+    let CURRENT_LANG = localStorage.getItem("sehtak_lang") || "ar";
+
+    function toggleLanguage() {
+      const newLang = CURRENT_LANG === "ar" ? "en" : "ar";
+      setLanguage(newLang);
+    }
+
+    function setLanguage(lang) {
+      CURRENT_LANG = lang;
+      localStorage.setItem("sehtak_lang", lang);
+      document.documentElement.lang = lang;
+      document.documentElement.dir = (lang === "ar" ? "rtl" : "ltr");
+
+      const label = document.getElementById("langToggleLabel");
+      if (label) {
+        label.textContent = (lang === "ar" ? "EN" : "عربي");
+      }
+
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (I18N[lang] && I18N[lang][key]) {
+          if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
+            el.placeholder = I18N[lang][key];
+          } else {
+            el.innerHTML = I18N[lang][key];
+          }
+        }
+      });
+    }
+
+    // Apply language on initial boot
+    document.addEventListener("DOMContentLoaded", () => {
+      setLanguage(CURRENT_LANG);
+    });
+
     const SESSION_ID = "sehtak-web-" + Math.random().toString(36).substring(2, 8);
     let latestPdfBase64En = null;
     let latestPdfBase64Ar = null;
@@ -2746,7 +2926,7 @@
         pdfActionsHtml = `
           <div class="pdf-inline-actions">
             <button class="pdf-chip-btn primary-ar" onclick="downloadPdf('ar')">
-              <span>تحميل التقرير بالعربية (للمستشفى) PDF</span>
+              <span data-i18n="download_ar_pdf">تحميل التقرير بالعربية (للمستشفى) PDF</span>
             </button>
             <button class="pdf-chip-btn" onclick="downloadPdf('en')">
               <span>Download English ER PDF</span>
