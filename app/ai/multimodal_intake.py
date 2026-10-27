@@ -272,7 +272,6 @@ class MultimodalIntakePipeline:
                     ],
                     config=types.GenerateContentConfig(
                         response_mime_type="application/json",
-                        response_schema=ClinicalIntakeSchema,
                         temperature=0.1,
                     ),
                 )
@@ -334,7 +333,6 @@ class MultimodalIntakePipeline:
                 ],
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
-                    response_schema=ClinicalIntakeSchema,
                     temperature=0.1,
                 ),
             )
@@ -426,7 +424,6 @@ class MultimodalIntakePipeline:
                 contents=[SYSTEM_EXTRACTION_PROMPT, prompt_text, image_part],
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
-                    response_schema=ClinicalIntakeSchema,
                     temperature=0.1,
                 ),
             )
