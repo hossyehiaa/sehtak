@@ -1889,8 +1889,8 @@
         <div class="scenarios-block">
           <span class="scenarios-label" data-i18n="scenarios_label">نماذج محاكاة إكلينيكية فورية:</span>
           <div class="scenarios-list">
-            <button class="scenario-btn" onclick="triggerScenario('rule2_guardrail')">
-              <span data-i18n="scenario_1">اختبار حارس المدة المفقودة (Rule 2 Guardrail)</span>
+            <button class="scenario-btn" onclick="triggerScenario('cold_flu')">
+              <span data-i18n="scenario_cold_flu">دور البرد والكحة الناشفة وتكسير الجسم (نصائح الأمان الدوائي)</span>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </button>
             <button class="scenario-btn" onclick="triggerScenario('silent_aki')">
@@ -1899,6 +1899,18 @@
             </button>
             <button class="scenario-btn" onclick="triggerScenario('triple_whammy')">
               <span data-i18n="scenario_3">سيناريو تفاعل أدوية الضغط ومدرات البول مع المسكنات (Triple Whammy)</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <button class="scenario-btn" onclick="triggerScenario('peptic_ulcer')">
+              <span data-i18n="scenario_peptic_ulcer">مريض قرحة المعدة والارتجاع مع مسكنات البروفين (GI Bleed Risk)</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <button class="scenario-btn" onclick="triggerScenario('anticoagulant_bleeding')">
+              <span data-i18n="scenario_anticoagulant">مرضى القلب والسيولة (بلافيكس/ماريفان) مع المسكنات وظهور الكدمات</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <button class="scenario-btn" onclick="triggerScenario('rule2_guardrail')">
+              <span data-i18n="scenario_1">اختبار حارس المدة المفقودة (Missing Duration Guardrail)</span>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </button>
           </div>
@@ -2453,9 +2465,12 @@
         hero_title: "أهلاً بك في صحتك AI<br />كيف نساعدك اليوم؟",
         hero_subtitle: "حماية استباقية من المضاعفات الصامتة للمسكنات وتضارب الأدوية المزمنة، مع إصدار تقارير طوارئ معتمدة باللغتين العربية والإنجليزية.",
         scenarios_label: "نماذج محاكاة إكلينيكية فورية:",
-        scenario_1: "اختبار حارس المدة المفقودة (Rule 2 Guardrail)",
+        scenario_cold_flu: "دور البرد والكحة الناشفة وتكسير الجسم (نصائح الأمان الدوائي)",
         scenario_2: "سيناريو كتافلام 60 يوم مع ألم الذراع والإرهاق (Silent AKI)",
         scenario_3: "سيناريو تفاعل أدوية الضغط ومدرات البول مع المسكنات (Triple Whammy)",
+        scenario_peptic_ulcer: "مريض قرحة المعدة والارتجاع مع مسكنات البروفين (GI Bleed Risk)",
+        scenario_anticoagulant: "مرضى القلب والسيولة (بلافيكس/ماريفان) مع المسكنات وظهور الكدمات",
+        scenario_1: "اختبار حارس المدة المفقودة (Rule 2 Guardrail)",
         bento_voice_title: "تسجيل صوتي باللهجة المصرية",
         bento_voice_desc: "فهم إكلينيكي دقيق واستخلاص للأعراض",
         bento_camera_title: "تصوير علبة أو شريط دواء",
@@ -2496,9 +2511,12 @@
         hero_title: "Welcome to Sehtak AI<br />How can we safeguard you today?",
         hero_subtitle: "Proactive prevention of silent drug-induced kidney injury and polypharmacy complications, generating bilingual ER-grade emergency reports.",
         scenarios_label: "Clinical Instant Simulations:",
-        scenario_1: "Missing Duration Guardrail (Rule 2)",
+        scenario_cold_flu: "Acute Cold, Dry Cough & Body Aches (Medication Safety)",
         scenario_2: "Chronic Cataflam 60 Days with Arm Pain & Fatigue (Silent AKI)",
         scenario_3: "NSAID + ACE-i + Diuretic Interaction (Triple Whammy)",
+        scenario_peptic_ulcer: "Peptic Ulcer Patient Taking Brufen (GI Bleeding Risk)",
+        scenario_anticoagulant: "Anticoagulants (Plavix/Warfarin) with NSAIDs (Bleeding Alert)",
+        scenario_1: "Missing Duration Guardrail (Rule 2 Evaluation)",
         bento_voice_title: "Egyptian Voice Intake",
         bento_voice_desc: "Precise clinical understanding and symptom extraction",
         bento_camera_title: "Medication Box / Strip Photo",
@@ -3266,13 +3284,41 @@
     function triggerScenario(type) {
       navigateToPage('triage');
       switchMobileTab('chat');
-      if (type === "rule2_guardrail") {
-        sendTextToTriage("لو سمحت والدتي عندها 65 سنة وعندها ضغط وبتاخد برشام كتافلام عشان وجع الركبة", true);
+      const isEn = CURRENT_LANG === 'en';
+
+      if (type === "cold_flu") {
+        const msg = isEn
+          ? "I have had a bad cold, dry cough, and severe body aches for 2 days. What should I do, and is the popular pharmacy cold cocktail injection safe?"
+          : "عندي دور برد وكحة ناشفة وتكسير شديد في عظام جسمي بقالي يومين، وعايز أعرف أتصرف إزاي وهل حقنة البرد الشعبية دي آمنة؟";
+        sendTextToTriage(msg, true);
       } else if (type === "silent_aki") {
-        appendWaveformMessage("Caregiver_Voice_Note.ogg", "00:48 • كتافلام 60 يوم + ألم الذراع وإرهاق");
-        sendTextToTriage("والدتي عندها 65 سنة وعندها ضغط، بتاخد كتافلام 50 ملجم كل يوم بقالها شهرين، وبقالها يومين بتشتكي من وجع في دراعها وهمدان شديد وغممان نفس", true);
+        const audioTitle = isEn ? "Caregiver_Voice_Note.ogg" : "Caregiver_Voice_Note.ogg";
+        const audioSub = isEn ? "00:48 • Cataflam 60 Days + Arm Pain & Fatigue" : "00:48 • كتافلام 60 يوم + ألم الذراع وإرهاق";
+        appendWaveformMessage(audioTitle, audioSub);
+        const msg = isEn
+          ? "My 65yo mother with hypertension has been taking Cataflam 50mg daily for 2 months, and now has severe arm pain, generalized fatigue, and nausea."
+          : "والدتي عندها 65 سنة وعندها ضغط، بتاخد كتافلام 50 ملجم كل يوم بقالها شهرين، وبقالها يومين بتشتكي من وجع في دراعها وهمدان شديد وغممان نفس";
+        sendTextToTriage(msg, true);
       } else if (type === "triple_whammy") {
-        sendTextToTriage("والدي عنده 70 سنة بياخد كابوتين ولازكس للضغط، وبقاله أسبوعين بياخد كيتوفان كل يوم وعنده قلة البول وتورم في الرجلين", true);
+        const msg = isEn
+          ? "My 70yo father is taking Capoten and Lasix for hypertension, plus Ketofan daily for 2 weeks, and now has reduced urine output and leg swelling."
+          : "والدي عنده 70 سنة بياخد كابوتين ولازكس للضغط، وبقاله أسبوعين بياخد كيتوفان كل يوم وعنده قلة البول وتورم في الرجلين";
+        sendTextToTriage(msg, true);
+      } else if (type === "peptic_ulcer") {
+        const msg = isEn
+          ? "I have a history of peptic ulcer and acid reflux. I have knee pain and have been taking Brufen 400mg twice daily, now feeling severe epigastric burning pain."
+          : "عندي قرحة معدة وارتجاع مريء، وركبتي بتوجعني وباخد بروفين 400 مرتين في اليوم وعندي حرقان جامد ووجع شديد في فم المعدة";
+        sendTextToTriage(msg, true);
+      } else if (type === "anticoagulant_bleeding") {
+        const msg = isEn
+          ? "My father has a cardiac stent taking Plavix and Marevan for anticoagulation, recently started Bai-Alcofan for back pain and we noticed blue bruises on his body."
+          : "والدي مركب دعامة قلب وبياخد بلافيكس وماريفان للسيولة، وبقاله أسبوع بياخد باي-ألكوفان لوجع الضهر، وبدأ يظهر كدمات زرقاء وبقع دم في جسمه";
+        sendTextToTriage(msg, true);
+      } else if (type === "rule2_guardrail") {
+        const msg = isEn
+          ? "My 65yo mother has hypertension and is taking Cataflam tablets for knee pain."
+          : "لو سمحت والدتي عندها 65 سنة وعندها ضغط وبتاخد برشام كتافلام عشان وجع الركبة";
+        sendTextToTriage(msg, true);
       }
     }
 
