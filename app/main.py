@@ -32,7 +32,15 @@ from app.auth.security import get_current_user_optional
 from app.bot.telegram_bot import create_telegram_bot_and_dispatcher
 from app.bot.whatsapp_webhook import whatsapp_router
 from app.config import settings
-from app.database.db import AsyncSessionLocal, UserModel, ensure_db_ready, get_patient_intake_session, init_db, reset_patient_session
+from app.database.db import (
+    AsyncSessionLocal,
+    UserModel,
+    ensure_db_ready,
+    get_conversation_history,
+    get_patient_intake_session,
+    init_db,
+    reset_patient_session,
+)
 from app.database.egyptian_drugs_seed import EGYPTIAN_DRUG_KNOWLEDGE_BASE
 from app.medical_engine.triage_orchestrator import triage_orchestrator
 from app.schemas.clinical_schemas import ComponentDegradation, TriageAnalyzeRequest, TriageOrchestratorResult
@@ -169,6 +177,15 @@ async def analyze_triage_request(
             detail="Authentication required for triage evaluation. Set ALLOW_ANONYMOUS_DEMO=true for public demo.",
         )
 
+    # Free trial limit enforcement for guest/anonymous users (2 messages)
+    if current_user is None and settings.ANONYMOUS_TRIAL_LIMIT > 0 and not payload.reset_session:
+        history = await get_conversation_history(payload.session_id)
+        if len(history) >= settings.ANONYMOUS_TRIAL_LIMIT:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="لقد استنفدت استشارتي التجربة المجانية (2/2). يرجى تسجيل الدخول أو إنشاء حساب مجاني للاستمرار في استخدام صحتك AI بدون حدود وحفظ تقاريرك الطبية.",
+            )
+
     if not payload.text_input or not payload.text_input.strip():
         raise HTTPException(status_code=400, detail="text_input is required.")
 
@@ -200,6 +217,15 @@ async def analyze_multimodal_upload(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required. Set ALLOW_ANONYMOUS_DEMO=true for public demo.",
         )
+
+    # Free trial limit enforcement for guest/anonymous users (2 messages)
+    if current_user is None and settings.ANONYMOUS_TRIAL_LIMIT > 0 and not reset_session:
+        history = await get_conversation_history(session_id)
+        if len(history) >= settings.ANONYMOUS_TRIAL_LIMIT:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="لقد استنفدت استشارتي التجربة المجانية (2/2). يرجى تسجيل الدخول أو إنشاء حساب مجاني للاستمرار في استخدام صحتك AI بدون حدود وحفظ تقاريرك الطبية.",
+            )
 
     if reset_session:
         await reset_patient_session(session_id)

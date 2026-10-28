@@ -245,3 +245,120 @@ def test_medication_and_supplement_consultation_mode():
         assert data["pdf_report_path"] is not None and Path(data["pdf_report_path"]).exists()
         assert data["pdf_report_path_ar"] is not None and Path(data["pdf_report_path_ar"]).exists()
 
+
+def test_anonymous_trial_limit_and_unlimited_auth_bypass():
+    """
+    Verifies Guest Trial Mode:
+    1. Unauthenticated users get exactly 2 messages in a session.
+    2. The 3rd message without auth is blocked with HTTP 403 and high-converting message.
+    3. An authenticated user can bypass trial restrictions completely (unlimited access).
+    """
+    with TestClient(app) as client:
+        session_id = f"test-trial-guest-{os.urandom(4).hex()}"
+
+        # 1st free message (reset_session=True to ensure clean start)
+        r1 = client.post(
+            "/api/v1/triage/analyze",
+            json={
+                "session_id": session_id,
+                "text_input": "عندي كحة خفيفة من يومين",
+                "reset_session": True,
+            },
+        )
+        assert r1.status_code == 200
+
+        # 2nd free message
+        r2 = client.post(
+            "/api/v1/triage/analyze",
+            json={
+                "session_id": session_id,
+                "text_input": "وباخود بنادول قرصين كل يوم",
+                "reset_session": False,
+            },
+        )
+        assert r2.status_code == 200
+
+        # 3rd message should be BLOCKED with HTTP 403 Forbidden
+        r3 = client.post(
+            "/api/v1/triage/analyze",
+            json={
+                "session_id": session_id,
+                "text_input": "ودلوقتي حاسس بدوخة وإرهاق",
+                "reset_session": False,
+            },
+        )
+        assert r3.status_code == 403
+        assert "استنفدت استشارتي التجربة المجانية" in r3.json()["detail"]
+
+        # Authenticate / Create a registered user
+        user_email = f"trial_bypass_{os.urandom(4).hex()}@sehtak.ai"
+        signup_resp = client.post(
+            "/api/v1/auth/signup",
+            json={
+                "email": user_email,
+                "password": "SecurePassword123!",
+                "full_name": "د. هاني السعيد",
+                "role": "physician",
+            },
+        )
+        assert signup_resp.status_code == 201
+        token = signup_resp.json()["access_token"]
+
+        # The authenticated user sends the 3rd message with same session_id: Bypasses trial limit!
+        r3_auth = client.post(
+            "/api/v1/triage/analyze",
+            headers={"Authorization": f"Bearer {token}"},
+            json={
+                "session_id": session_id,
+                "text_input": "ودلوقتي حاسس بدوخة وإرهاق",
+                "reset_session": False,
+            },
+        )
+        assert r3_auth.status_code == 200
+        assert r3_auth.json()["status"] in ["completed", "needs_input"]
+
+
+def test_google_auth_and_config_endpoints():
+    """
+    Verifies Google Sign-in:
+    1. GET /api/v1/auth/google/config returns enabled status and client ID.
+    2. POST /api/v1/auth/google provisions a user account and returns JWT credentials.
+    3. Authenticated session verifies identity via GET /api/v1/auth/me.
+    """
+    with TestClient(app) as client:
+        # 1. Config endpoint
+        cfg_resp = client.get("/api/v1/auth/google/config")
+        assert cfg_resp.status_code == 200
+        cfg = cfg_resp.json()
+        assert "client_id" in cfg
+        assert "enabled" in cfg
+
+        # 2. Direct Google sign-in payload
+        google_email = f"doctor.google.{os.urandom(4).hex()}@gmail.com"
+        google_name = "د. كريم رضوان (Google Verified)"
+        auth_resp = client.post(
+            "/api/v1/auth/google",
+            json={
+                "email": google_email,
+                "name": google_name,
+                "google_id": f"gid_{os.urandom(6).hex()}",
+                "role": "caregiver",
+            },
+        )
+        assert auth_resp.status_code == 200
+        auth_data = auth_resp.json()
+        assert "access_token" in auth_data
+        assert "refresh_token" in auth_data
+        assert auth_data["token_type"] == "bearer"
+
+        # 3. Verify access token against /api/v1/auth/me
+        me_resp = client.get(
+            "/api/v1/auth/me",
+            headers={"Authorization": f"Bearer {auth_data['access_token']}"},
+        )
+        assert me_resp.status_code == 200
+        me_data = me_resp.json()
+        assert me_data["email"] == google_email
+        assert me_data["full_name"] == google_name
+
+

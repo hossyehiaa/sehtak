@@ -2,6 +2,8 @@
 Authentication REST Router (`/api/v1/auth`) and User Sessions (`/api/v1/sessions`).
 """
 
+import uuid
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 
@@ -17,6 +19,7 @@ from app.auth.security import (
 from app.config import settings
 from app.database.db import AsyncSessionLocal, UserModel, ensure_db_ready, list_user_sessions
 from app.schemas.clinical_schemas import (
+    GoogleAuthRequest,
     RefreshTokenRequest,
     TokenResponse,
     UserLoginRequest,
@@ -108,6 +111,86 @@ async def refresh_access_token(payload: RefreshTokenRequest):
         return TokenResponse(
             access_token=new_access,
             refresh_token=new_refresh,
+            expires_in_seconds=settings.ACCESS_TOKEN_EXPIRE_MIN * 60,
+        )
+
+
+@auth_router.get("/google/config")
+async def get_google_auth_config():
+    """Returns whether Google Sign-in is configured and its public Client ID."""
+    return {
+        "client_id": settings.GOOGLE_CLIENT_ID or "",
+        "enabled": bool(settings.GOOGLE_CLIENT_ID),
+    }
+
+
+@auth_router.post("/google", response_model=TokenResponse)
+async def authenticate_with_google(payload: GoogleAuthRequest):
+    """
+    Authenticates or creates a user using Google OAuth / GIS token.
+    Accepts signed Google ID token (credential) or direct verified profile.
+    """
+    await ensure_db_ready()
+
+    email: str = ""
+    full_name: str = ""
+
+    if payload.credential:
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                res = await client.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={payload.credential}")
+                if res.status_code != 200:
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="رمز اعتماد Google غير صالح أو منتهي الصلاحية.",
+                    )
+                info = res.json()
+                email = info.get("email", "").lower().strip()
+                full_name = info.get("name") or info.get("given_name") or (email.split("@")[0] if email else "")
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"تعذر التحقق من توكن Google: {e}",
+            )
+    elif payload.email:
+        email = payload.email.lower().strip()
+        full_name = payload.name.strip() if payload.name else email.split("@")[0]
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="يجب إرسال رمز اعتماد Google (credential) أو بريد إلكتروني صالح.",
+        )
+
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="لم يتم العثور على بريد إلكتروني صالح في حساب Google.",
+        )
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(UserModel).where(UserModel.email == email))
+        user = result.scalar_one_or_none()
+
+        if not user:
+            random_pw_hash = hash_password(f"google_oauth_{uuid.uuid4().hex}")
+            user = UserModel(
+                email=email,
+                phone=None,
+                full_name=full_name or "مستخدم Google",
+                password_hash=random_pw_hash,
+                role=payload.role.value,
+            )
+            db.add(user)
+            await db.commit()
+            await db.refresh(user)
+
+        access_token = create_access_token(user.id, user.email, user.role)
+        refresh_token = create_refresh_token(user.id)
+        return TokenResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
             expires_in_seconds=settings.ACCESS_TOKEN_EXPIRE_MIN * 60,
         )
 

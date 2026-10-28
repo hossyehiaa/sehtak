@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
       --bg-slate-950: #050811;
@@ -1556,6 +1557,202 @@
       color: #6ee7b7;
     }
 
+    /* Social Google Auth Buttons & Dividers */
+    .social-auth-section {
+      margin-bottom: 16px;
+    }
+    .google-auth-btn {
+      width: 100%;
+      padding: 11px 16px;
+      border-radius: 12px;
+      background: #ffffff;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      color: #1e293b;
+      font-family: 'IBM Plex Sans Arabic', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+    .google-auth-btn:hover {
+      background: #f8fafc;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+    }
+    .google-auth-btn:active {
+      transform: translateY(0);
+    }
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      margin: 16px 0;
+      color: var(--text-muted);
+      font-size: 11.5px;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: "";
+      flex: 1;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .auth-divider span {
+      padding: 0 10px;
+    }
+
+    /* Trial Pills & Badges */
+    .trial-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .trial-pill.trial-green {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #6ee7b7;
+    }
+    .trial-pill.trial-amber {
+      background: rgba(245, 158, 11, 0.14);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fcd34d;
+    }
+    .trial-pill.trial-red {
+      background: rgba(244, 63, 94, 0.16);
+      border: 1px solid rgba(244, 63, 94, 0.5);
+      color: #fda4af;
+      cursor: pointer;
+    }
+    .trial-pill.trial-active {
+      background: rgba(37, 99, 235, 0.15);
+      border: 1px solid rgba(96, 165, 250, 0.35);
+      color: #93c5fd;
+    }
+
+    /* Trial Exhausted Chat Stream Card */
+    .trial-end-stream-card {
+      background: linear-gradient(135deg, rgba(8, 17, 38, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+      border: 1.5px solid rgba(96, 165, 250, 0.4);
+      border-radius: 18px;
+      padding: 18px 20px;
+      margin: 12px 0;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45), 0 0 25px rgba(37, 99, 235, 0.2);
+      animation: modalSlideUp 0.3s ease-out;
+    }
+    .trial-end-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+    .trial-end-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+    .trial-end-desc {
+      font-size: 12.5px;
+      color: #cbd5e1;
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+    .trial-end-perks {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .trial-perk-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #e2e8f0;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .trial-perk-item svg {
+      color: #34d399;
+      flex-shrink: 0;
+    }
+    .trial-end-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .trial-btn-primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      border: 1px solid rgba(96, 165, 250, 0.5);
+      color: #ffffff;
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .trial-btn-primary:hover {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      transform: translateY(-1px);
+    }
+    .trial-btn-google {
+      background: #ffffff;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      color: #1e293b;
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .trial-btn-google:hover {
+      background: #f1f5f9;
+      transform: translateY(-1px);
+    }
+    .trial-btn-secondary {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #94a3b8;
+      padding: 9px 14px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .trial-btn-secondary:hover {
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
     /* History Sessions List */
     .history-card-item {
       background: rgba(10, 22, 50, 0.75);
@@ -2328,7 +2525,10 @@
          =============================================================== -->
     <section class="workspace-panel chat-glass-panel" id="panelChat">
       <div class="chat-panel-top">
-        <div style="font-size: 14px; font-weight: 700;" data-i18n="chat_top_title">محادثة الفرز الطبي واليقظة الدوائية</div>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <div style="font-size: 14px; font-weight: 700;" data-i18n="chat_top_title">محادثة الفرز الطبي واليقظة الدوائية</div>
+          <div id="trialBadgeContainer"></div>
+        </div>
         <button class="close-chat-pill" onclick="resetSession()">
           <span data-i18n="chat_close_btn">✕ إغلاق وبدء محادثة جديدة</span>
         </button>
@@ -2692,6 +2892,22 @@
       </div>
 
       <div class="modal-body">
+        <div class="social-auth-section">
+          <button type="button" class="google-auth-btn" id="googleAuthBtn" onclick="triggerGoogleLogin()">
+            <svg viewBox="0 0 24 24" width="18" height="18">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            <span id="googleBtnText" data-i18n="google_login_btn">المتابعة باستخدام حساب Google</span>
+          </button>
+
+          <div class="auth-divider">
+            <span data-i18n="auth_or_email">أو المتابعة بالبريد الإلكتروني</span>
+          </div>
+        </div>
+
         <!-- Login Form -->
         <form id="loginForm" onsubmit="handleLoginSubmit(event)">
           <div class="auth-alert" id="loginAlert"></div>
@@ -2745,6 +2961,105 @@
 
           <button type="submit" class="auth-submit-btn" id="signupSubmitBtn">
             <span>إنشاء الحساب وبدء الاستخدام</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 1B: TRIAL EXHAUSTED (انتهاء استشارات التجربة المجانية)
+       ========================================================================= -->
+  <div class="modal-backdrop" id="trialModalBackdrop" onclick="if(event.target===this)closeTrialModal()">
+    <div class="modal-card" style="max-width: 490px; border-color: rgba(96, 165, 250, 0.45);">
+      <div class="modal-header" style="background: linear-gradient(135deg, rgba(37,99,235,0.15) 0%, rgba(16,185,129,0.1) 100%);">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:34px;height:34px;border-radius:10px;background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);display:flex;align-items:center;justify-content:center;font-size:16px;">✨</div>
+          <div>
+            <div class="modal-title" style="font-size:16px;">انتهت فترة التجربة المجانية (2 من 2)</div>
+            <div style="font-size:11.5px;color:#94a3b8;margin-top:2px;">يسعدنا أنك استمتعت بخدمات «صحتك AI» للسلامة الدوائية</div>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeTrialModal()" title="إغلاق">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="modal-body" style="padding: 22px 24px;">
+        <p style="font-size:13px;color:#cbd5e1;line-height:1.6;margin-bottom:16px;">
+          للاستمرار في فحص الأدوية واستشارات الطوارئ الطبية بلا حدود، وحفظ تقاريرك الطبية بصيغة PDF الرسمية المعتمدة:
+        </p>
+
+        <div style="background: rgba(2, 6, 23, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 14px; margin-bottom: 20px;">
+          <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;color:#f8fafc;margin-bottom:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>استشارات وفحص تضارب أدوية غير محدود مجاناً</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;color:#f8fafc;margin-bottom:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>إصدار وتحميل تقارير الطوارئ والمستشفى PDF فوراً</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;color:#f8fafc;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>حفظ أرشيف فحوصاتك وسجل المريض الدائم</span>
+          </div>
+        </div>
+
+        <button type="button" class="google-auth-btn" onclick="closeTrialModal(); triggerGoogleLogin();" style="margin-bottom:12px;">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span>المتابعة السريعة عبر Google</span>
+        </button>
+
+        <button type="button" class="auth-submit-btn" onclick="closeTrialModal(); openAuthModal('signup');" style="margin-top:0;margin-bottom:12px;">
+          <span>إنشاء حساب مجاني بالبريد (Sign Up)</span>
+        </button>
+
+        <div style="text-align:center;">
+          <a href="#" onclick="closeTrialModal(); openAuthModal('login'); return false;" style="font-size:12px;color:#94a3b8;text-decoration:underline;">
+            لديك حساب مسجل بالفعل؟ تسجيل الدخول
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 1C: GOOGLE SIGN-IN PROMPT (DIAGNOSTIC / FALLBACK)
+       ========================================================================= -->
+  <div class="modal-backdrop" id="googlePromptModalBackdrop" onclick="if(event.target===this)closeGooglePromptModal()">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <div class="modal-title" style="font-size:15px;">تسجيل الدخول عبر Google</div>
+        </div>
+        <button class="modal-close-btn" onclick="closeGooglePromptModal()" title="إغلاق">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body" style="padding:20px;">
+        <div id="googleNativeButtonContainer" style="margin-bottom:12px;display:flex;justify-content:center;"></div>
+        <form onsubmit="handleCustomGoogleAuthSubmit(event)">
+          <div class="auth-input-group">
+            <label class="auth-label">بريدك الإلكتروني في Google</label>
+            <input type="email" id="customGoogleEmail" class="auth-input" placeholder="example@gmail.com" required />
+          </div>
+          <div class="auth-input-group">
+            <label class="auth-label">اسمك في حساب Google</label>
+            <input type="text" id="customGoogleName" class="auth-input" placeholder="د. أحمد أو محمد" required />
+          </div>
+          <button type="submit" class="google-auth-btn" style="margin-top:8px;">
+            <span>متابعة الدخول بحساب Google هذا</span>
           </button>
         </form>
       </div>
@@ -2936,15 +3251,214 @@
     let audioChunks = [];
     let isRecording = false;
 
-    // Authentication State
+    // Authentication & Guest Trial State
     const AUTH_STATE = {
       token: localStorage.getItem("sehtak_jwt") || null,
       currentUser: null,
     };
+    const TRIAL_LIMIT = 2;
+
+    function getTrialCount() {
+      const c = localStorage.getItem("sehtak_trial_msg_count");
+      return c ? parseInt(c, 10) : 0;
+    }
+
+    function incrementTrialCount() {
+      const current = getTrialCount();
+      const next = current + 1;
+      localStorage.setItem("sehtak_trial_msg_count", next.toString());
+      updateTrialUI();
+      return next;
+    }
+
+    function isTrialExhausted() {
+      if (AUTH_STATE.token) return false;
+      return getTrialCount() >= TRIAL_LIMIT;
+    }
+
+    function showTrialExhaustedModal() {
+      const el = document.getElementById("trialModalBackdrop");
+      if (el) el.classList.add("open");
+    }
+
+    function closeTrialModal() {
+      const el = document.getElementById("trialModalBackdrop");
+      if (el) el.classList.remove("open");
+    }
+
+    function closeGooglePromptModal() {
+      const el = document.getElementById("googlePromptModalBackdrop");
+      if (el) el.classList.remove("open");
+    }
+
+    function updateTrialUI() {
+      const container = document.getElementById("trialBadgeContainer");
+      if (!container) return;
+      const isEn = (CURRENT_LANG === 'en');
+
+      if (AUTH_STATE.token) {
+        container.innerHTML = `
+          <span class="trial-pill unlimited" title="${isEn ? 'Unlimited Consultations Active' : 'حساب دائم مفعل: استشارات وتقارير غير محدودة'}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>${isEn ? 'Unlimited Access' : 'استخدام غير محدود'}</span>
+          </span>
+        `;
+        return;
+      }
+
+      const count = getTrialCount();
+      if (count === 0) {
+        container.innerHTML = `
+          <span class="trial-pill" onclick="openAuthModal('signup')" title="${isEn ? 'Guest Free Trial: 2/2 remaining' : 'تجربة مجانية: متبقي رسالتان (2/2)'}">
+            <span class="trial-pulse-dot"></span>
+            <span>${isEn ? '✨ Free Trial (2/2)' : '✨ تجربة مجانية (2/2)'}</span>
+          </span>
+        `;
+      } else if (count === 1) {
+        container.innerHTML = `
+          <span class="trial-pill warning" onclick="openAuthModal('signup')" title="${isEn ? 'Guest Free Trial: 1/2 remaining' : 'تجربة مجانية: متبقية رسالة واحدة (1/2)'}">
+            <span class="trial-pulse-dot"></span>
+            <span>${isEn ? '⚡ Free Trial (1/2)' : '⚡ تجربة مجانية (1/2)'}</span>
+          </span>
+        `;
+      } else {
+        container.innerHTML = `
+          <span class="trial-pill exhausted" onclick="showTrialExhaustedModal()" title="${isEn ? 'Trial limit reached. Sign up for unlimited access' : 'انتهت الاستشارتان التجريبيتان - سجل حسابك للمتابعة'}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <span>${isEn ? '🔒 Trial Limit Reached' : '🔒 انتهت التجربة (2/2)'}</span>
+          </span>
+        `;
+      }
+    }
+
+    function appendTrialCompletionCard() {
+      const stream = document.getElementById("chatStream");
+      if (!stream) return;
+      const isEn = (CURRENT_LANG === 'en');
+      const card = document.createElement("div");
+      card.className = "trial-end-stream-card";
+      card.innerHTML = `
+        <div class="trial-end-title">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+          <span>${isEn ? '✨ You have completed your 2 free guest consultations' : '✨ اكتملت الاستشارتان التجريبيتان بنجاح'}</span>
+        </div>
+        <p class="trial-end-desc">
+          ${isEn 
+            ? 'To preserve your medical history, obtain ER-grade bilingual Arabic/English PDF hospital summaries, and consult without any message limits, sign up for free now or continue instantly via Google.' 
+            : 'حرصاً على سلامتك الدوائية وتوثيق أرشيف فحوصاتك وتقارير الطوارئ بصيغة PDF الرسمية المعتمدة (عربي وإنجليزي)، يرجى إنشاء حساب مجاني أو تسجيل الدخول بنقرة واحدة عبر Google للمتابعة بلا أي حدود.'}
+        </p>
+        <div class="trial-end-actions">
+          <button type="button" class="trial-btn-primary" onclick="openAuthModal('signup')">
+            ${isEn ? 'Create Permanent Account Free' : 'إنشاء حساب دائم مجاناً'}
+          </button>
+          <button type="button" class="trial-btn-google" onclick="triggerGoogleLogin()">
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            <span>${isEn ? 'Continue with Google' : 'المتابعة بـ Google'}</span>
+          </button>
+          <button type="button" class="trial-btn-secondary" onclick="openAuthModal('login')">
+            ${isEn ? 'Sign In' : 'تسجيل الدخول'}
+          </button>
+        </div>
+      `;
+      stream.appendChild(card);
+      scrollToBottom();
+    }
+
+    // Google Identity Services Integration
+    let GOOGLE_CONFIG = null;
+
+    async function fetchGoogleConfig() {
+      if (GOOGLE_CONFIG !== null) return GOOGLE_CONFIG;
+      try {
+        const res = await fetch("/api/v1/auth/google/config");
+        if (res.ok) {
+          GOOGLE_CONFIG = await res.json();
+        } else {
+          GOOGLE_CONFIG = { enabled: false, client_id: "" };
+        }
+      } catch (e) {
+        GOOGLE_CONFIG = { enabled: false, client_id: "" };
+      }
+      return GOOGLE_CONFIG;
+    }
+
+    async function triggerGoogleLogin() {
+      const cfg = await fetchGoogleConfig();
+      if (cfg && cfg.enabled && window.google && window.google.accounts && window.google.accounts.id) {
+        try {
+          window.google.accounts.id.initialize({
+            client_id: cfg.client_id,
+            callback: handleGoogleCredentialResponse,
+            auto_select: false
+          });
+          window.google.accounts.id.prompt((notification) => {
+            if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+              openGooglePromptModal();
+            }
+          });
+          return;
+        } catch (err) {
+          console.warn("GIS prompt fallback:", err);
+        }
+      }
+      openGooglePromptModal();
+    }
+
+    function openGooglePromptModal() {
+      closeAuthModal();
+      closeTrialModal();
+      const el = document.getElementById("googlePromptModalBackdrop");
+      if (el) el.classList.add("open");
+    }
+
+    async function handleGoogleCredentialResponse(response) {
+      if (!response || !response.credential) return;
+      await submitGoogleAuthPayload({ credential: response.credential });
+    }
+
+    async function handleCustomGoogleAuthSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById("customGoogleEmail").value.trim().toLowerCase();
+      const name = document.getElementById("customGoogleName").value.trim();
+      if (!email) return;
+      await submitGoogleAuthPayload({ email, name: name || email.split("@")[0] });
+    }
+
+    async function submitGoogleAuthPayload(payload) {
+      try {
+        const resp = await fetch("/api/v1/auth/google", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await resp.json();
+        if (!resp.ok) {
+          alert(data.detail || "تعذر تسجيل الدخول بحساب Google");
+          return;
+        }
+        localStorage.setItem("sehtak_jwt", data.access_token);
+        localStorage.setItem("sehtak_refresh", data.refresh_token);
+        AUTH_STATE.token = data.access_token;
+        closeGooglePromptModal();
+        closeAuthModal();
+        closeTrialModal();
+        await initAuth();
+        if (typeof renderProfilePage === "function") renderProfilePage();
+        if (typeof loadPatientRecords === "function") loadPatientRecords();
+      } catch (err) {
+        alert("تعذر الاتصال بالخادم لإتمام تسجيل الدخول عبر Google");
+      }
+    }
 
     // Initialize Auth state & default directly to Chat view on page boot
     document.addEventListener("DOMContentLoaded", () => {
       initAuth();
+      updateTrialUI();
       if (typeof switchMobileTab === "function") {
         switchMobileTab('chat');
       }
@@ -2960,6 +3474,7 @@
       if (!token) {
         AUTH_STATE.token = null;
         AUTH_STATE.currentUser = null;
+        updateTrialUI();
         container.innerHTML = `
           <button class="auth-btn" onclick="openAuthModal('login')">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -2977,6 +3492,7 @@
           const user = await resp.json();
           AUTH_STATE.currentUser = user;
           AUTH_STATE.token = token;
+          updateTrialUI();
           const roleLabel = user.role === "physician" ? "طبيب" : "مرافق";
           container.innerHTML = `
             <div class="user-pill">
@@ -2992,6 +3508,7 @@
           localStorage.removeItem("sehtak_refresh");
           AUTH_STATE.token = null;
           AUTH_STATE.currentUser = null;
+          updateTrialUI();
           initAuth();
         }
       } catch (e) {
@@ -3433,6 +3950,10 @@
 
     async function sendTextToTriage(text, reset = false) {
       if (!text || !text.trim()) return;
+      if (!reset && isTrialExhausted()) {
+        showTrialExhaustedModal();
+        return;
+      }
       appendUserMessage(text);
       document.getElementById("statusHeaderPill").textContent = "Analyzing...";
 
@@ -3473,6 +3994,11 @@
         document.getElementById("statusHeaderPill").textContent = "Caregiver Mode";
 
         if (!resp.ok) {
+          if (resp.status === 403) {
+            localStorage.setItem("sehtak_trial_msg_count", TRIAL_LIMIT.toString());
+            updateTrialUI();
+            showTrialExhaustedModal();
+          }
           const detail = data.detail || "حدث خطأ أثناء معالجة الطلب.";
           appendAssistantResponse({
             caregiver_response_ar: `**تنبيه من النظام:**\n${typeof detail === "string" ? detail : JSON.stringify(detail)}`,
@@ -3483,6 +4009,12 @@
         }
 
         appendAssistantResponse(data);
+        if (!AUTH_STATE.token && !reset) {
+          const count = incrementTrialCount();
+          if (count === TRIAL_LIMIT) {
+            setTimeout(appendTrialCompletionCard, 350);
+          }
+        }
       } catch (err) {
         const activeIndicator = document.getElementById("activeTypingIndicator");
         if (activeIndicator) activeIndicator.remove();
@@ -3500,6 +4032,10 @@
       const el = document.getElementById(inputId);
       const val = el.value.trim();
       if (!val) return;
+      if (isTrialExhausted()) {
+        showTrialExhaustedModal();
+        return;
+      }
       el.value = "";
       sendTextToTriage(val, false);
     }
@@ -3507,6 +4043,11 @@
     async function handleFileUpload(inputEl, kind) {
       const file = inputEl.files[0];
       if (!file) return;
+      if (isTrialExhausted()) {
+        showTrialExhaustedModal();
+        inputEl.value = "";
+        return;
+      }
 
       if (kind === "image") {
         appendUserMessage(`تم إرفاق صورة دواء: **${file.name}**`, "فحص علبة الدواء");
@@ -3552,6 +4093,11 @@
         document.getElementById("statusHeaderPill").textContent = "Caregiver Mode";
 
         if (!resp.ok) {
+          if (resp.status === 403) {
+            localStorage.setItem("sehtak_trial_msg_count", TRIAL_LIMIT.toString());
+            updateTrialUI();
+            showTrialExhaustedModal();
+          }
           appendAssistantResponse({
             caregiver_response_ar: "**تم استلام صورة الدواء بنجاح.**\n--------------------------------------------------\nلتأكيد المادة الفعالة والجرعة ومراجعة تضارب الأدوية بأعلى دقة إكلينيكية، يرجى كتابة **اسم الدواء المطبوع على العلبة**، وهل المريض يعاني من أي أمراض مزمنة أو أعراض؟",
             severity: "MODERATE_CAUTION",
@@ -3561,6 +4107,12 @@
         }
 
         appendAssistantResponse(data);
+        if (!AUTH_STATE.token) {
+          const count = incrementTrialCount();
+          if (count === TRIAL_LIMIT) {
+            setTimeout(appendTrialCompletionCard, 350);
+          }
+        }
       } catch (err) {
         const activeIndicator = document.getElementById("activeTypingIndicator");
         if (activeIndicator) activeIndicator.remove();
@@ -3577,6 +4129,10 @@
     }
 
     async function toggleVoiceRecording() {
+      if (isTrialExhausted()) {
+        showTrialExhaustedModal();
+        return;
+      }
       const micBtn = document.getElementById("chatMicBtn");
       const bentoTitle = document.getElementById("bentoVoiceTitle");
 
@@ -3641,6 +4197,11 @@
 
             const data = await resp.json();
             if (!resp.ok) {
+              if (resp.status === 403) {
+                localStorage.setItem("sehtak_trial_msg_count", TRIAL_LIMIT.toString());
+                updateTrialUI();
+                showTrialExhaustedModal();
+              }
               const detail = data.detail || (data.degradation && data.degradation.user_message_ar) || "تعذر تحليل الصوت حالياً.";
               appendAssistantResponse({
                 caregiver_response_ar: `**تنبيه:**\n${typeof detail === "string" ? detail : JSON.stringify(detail)}`,
@@ -3650,6 +4211,12 @@
               return;
             }
             appendAssistantResponse(data);
+            if (!AUTH_STATE.token) {
+              const count = incrementTrialCount();
+              if (count === TRIAL_LIMIT) {
+                setTimeout(appendTrialCompletionCard, 350);
+              }
+            }
           } catch (e) {
             const activeIndicator = document.getElementById("activeTypingIndicator");
             if (activeIndicator) activeIndicator.remove();
@@ -3671,6 +4238,10 @@
     }
 
     function triggerScenario(type) {
+      if (isTrialExhausted()) {
+        showTrialExhaustedModal();
+        return;
+      }
       navigateToPage('triage');
       switchMobileTab('chat');
       const isEn = CURRENT_LANG === 'en';

@@ -60,6 +60,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MIN: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     ALLOW_ANONYMOUS_DEMO: bool = True
+    ANONYMOUS_TRIAL_LIMIT: int = 2
+    GOOGLE_CLIENT_ID: str = ""
 
     # AI Providers
     GEMINI_API_KEY: str = ""

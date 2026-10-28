@@ -59,6 +59,14 @@ class UserLoginRequest(BaseModel):
     password: str
 
 
+class GoogleAuthRequest(BaseModel):
+    credential: Optional[str] = Field(default=None, description="Google ID Token JWT")
+    email: Optional[str] = Field(default=None, description="Direct email if verified")
+    name: Optional[str] = Field(default=None, description="User full name from Google")
+    google_id: Optional[str] = Field(default=None, description="Google user unique ID")
+    role: UserRole = Field(default=UserRole.CAREGIVER, description="Role")
+
+
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
