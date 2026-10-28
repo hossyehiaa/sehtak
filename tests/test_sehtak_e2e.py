@@ -362,3 +362,54 @@ def test_google_auth_and_config_endpoints():
         assert me_data["full_name"] == google_name
 
 
+def test_feedback_submission_and_clinical_erasure():
+    """
+    Verifies Medical Trust & Data Transparency features:
+    1. Feedback collection: POST /api/v1/feedback saves user rating & comments.
+    2. Data Privacy & GDPR Right to Erasure: DELETE /api/v1/user/data purges user's clinical sessions.
+    """
+    with TestClient(app) as client:
+        # Create authenticated user
+        email = f"patient.privacy.{os.urandom(4).hex()}@sehtak.ai"
+        signup_resp = client.post(
+            "/api/v1/auth/signup",
+            json={
+                "email": email,
+                "password": "PrivacyPassword2026!",
+                "full_name": "أحمد محمود (اختبار الخصوصية)",
+                "role": "caregiver",
+            },
+        )
+        assert signup_resp.status_code == 201
+        token = signup_resp.json()["access_token"]
+        session_id = f"privacy-session-{os.urandom(4).hex()}"
+
+        # 1. Submit feedback
+        fb_resp = client.post(
+            "/api/v1/feedback",
+            headers={"Authorization": f"Bearer {token}"},
+            json={
+                "session_id": session_id,
+                "helpful": True,
+                "comments": "تقييم ممتاز ودقيق طبياً",
+                "rating": 5,
+            },
+        )
+        assert fb_resp.status_code == 200
+        fb_data = fb_resp.json()
+        assert fb_data["status"] == "success"
+
+        # 2. Try purging data without token -> 401
+        unauth_purge = client.delete("/api/v1/user/data")
+        assert unauth_purge.status_code == 401
+
+        # 3. Purge data with token -> 200
+        purge_resp = client.delete(
+            "/api/v1/user/data",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert purge_resp.status_code == 200
+        assert purge_resp.json()["status"] == "success"
+
+
+

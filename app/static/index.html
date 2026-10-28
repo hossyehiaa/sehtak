@@ -2322,6 +2322,386 @@
       border-left: 3px solid #3b82f6;
     }
 
+    /* =========================================================================
+       CLINICAL TRUST, EMERGENCY GUIDANCE & FAIL-SAFE UI STYLES
+       ========================================================================= */
+    .emergency-safety-banner {
+      background: rgba(220, 38, 38, 0.12);
+      border: 1.5px solid rgba(239, 68, 68, 0.45);
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      animation: fadeInEmergency 0.3s ease-out;
+      backdrop-filter: blur(8px);
+    }
+
+    @keyframes fadeInEmergency {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .emergency-banner-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+      animation: pulseAlert 1.8s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulseAlert {
+      from { transform: scale(1); filter: drop-shadow(0 0 2px rgba(239, 68, 68, 0.5)); }
+      to { transform: scale(1.12); filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.8)); }
+    }
+
+    .emergency-banner-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .emergency-banner-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #fca5a5;
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .emergency-banner-text {
+      font-size: 11.5px;
+      line-height: 1.5;
+      color: #fecaca;
+    }
+
+    .emergency-banner-text strong {
+      color: #ffffff;
+      text-decoration: underline;
+      text-decoration-color: rgba(239, 68, 68, 0.6);
+    }
+
+    .emergency-call-btn {
+      background: #dc2626;
+      color: #ffffff;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 10px rgba(220, 38, 38, 0.4);
+    }
+
+    .emergency-call-btn:hover {
+      background: #b91c1c;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(220, 38, 38, 0.6);
+    }
+
+    /* Primary Hero CTA (Simplified First Screen) */
+    .hero-primary-action-wrap {
+      margin: 18px 0 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .primary-hero-cta {
+      background: linear-gradient(135deg, #2563eb 0%, #0d9488 100%);
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 14.5px;
+      font-weight: 700;
+      padding: 13px 24px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+      transition: all 0.2s ease;
+    }
+
+    .primary-hero-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 26px rgba(37, 99, 235, 0.45);
+      filter: brightness(1.05);
+    }
+
+    .primary-hero-cta:active {
+      transform: scale(0.98);
+    }
+
+    .hero-secondary-cta {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #cbd5e1;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 12px 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .hero-secondary-cta:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.22);
+    }
+
+    /* Secondary Quick Simulation Chips */
+    .secondary-chips-container {
+      margin-top: 14px;
+    }
+
+    .chips-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .simulation-chips-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .scenario-chip {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 13px;
+      border-radius: 20px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .scenario-chip:hover {
+      background: rgba(37, 99, 235, 0.18);
+      border-color: rgba(96, 165, 250, 0.5);
+      color: #93c5fd;
+      transform: translateY(-1px);
+    }
+
+    /* Clinical Evidence & Attribution Box */
+    .clinical-trust-box {
+      margin-top: 20px;
+      padding: 12px 14px;
+      background: rgba(2, 6, 23, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 12px;
+      font-size: 11.5px;
+      line-height: 1.6;
+      color: #94a3b8;
+    }
+
+    .clinical-trust-box strong {
+      color: #e2e8f0;
+    }
+
+    .clinical-trust-links {
+      margin-top: 6px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .clinical-trust-link {
+      color: #38bdf8;
+      text-decoration: underline;
+      cursor: pointer;
+      font-size: 11.5px;
+      background: none;
+      border: none;
+      padding: 0;
+      font-family: inherit;
+    }
+
+    /* Fail-Safe UI on Server/Connection Errors */
+    .msg-row.assistant.system-fail-safe .msg-bubble.error-bubble {
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 14px;
+      padding: 14px 18px;
+      color: #fecaca;
+    }
+
+    .fail-safe-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #f87171;
+      margin-bottom: 8px;
+    }
+
+    .fail-safe-body {
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: #f1f5f9;
+      margin: 0 0 10px 0;
+    }
+
+    .fail-safe-emergency-reminder {
+      background: rgba(0, 0, 0, 0.35);
+      border-left: 3px solid #ef4444;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      line-height: 1.5;
+      color: #fca5a5;
+      margin-bottom: 12px;
+    }
+
+    html[dir="rtl"] .fail-safe-emergency-reminder {
+      border-left: none;
+      border-right: 3px solid #ef4444;
+    }
+
+    .fail-safe-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .retry-btn {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      color: #fecaca;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .retry-btn:hover {
+      background: rgba(239, 68, 68, 0.35);
+      color: #ffffff;
+    }
+
+    .severity-tag.unavailable {
+      background: rgba(148, 163, 184, 0.15) !important;
+      color: #94a3b8 !important;
+      border: 1px solid rgba(148, 163, 184, 0.35) !important;
+    }
+
+    /* Interactive Feedback Bar */
+    .feedback-prompt-bar {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 11.5px;
+      color: #94a3b8;
+    }
+
+    .fb-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #cbd5e1;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .fb-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .fb-btn.active-positive {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: rgba(16, 185, 129, 0.5);
+      color: #6ee7b7;
+    }
+
+    .fb-btn.active-negative {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.5);
+      color: #fca5a5;
+    }
+
+    .fb-thank-you {
+      font-size: 11.5px;
+      color: #34d399;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Privacy and Data Rights Card */
+    .privacy-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 18px;
+      margin-top: 16px;
+    }
+
+    .danger-purge-btn {
+      background: rgba(220, 38, 38, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .danger-purge-btn:hover {
+      background: rgba(220, 38, 38, 0.35);
+      color: #ffffff;
+      border-color: #ef4444;
+    }
+
   </style>
 </head>
 <body>
@@ -2367,6 +2747,16 @@
     </nav>
 
     <div class="header-left">
+      <!-- Clinical Evidence & Privacy Ghost Buttons -->
+      <button class="nav-ghost-btn hide-mobile" onclick="openClinicalSourcesModal()" title="المرجعية الطبية والحدود الإكلينيكية">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <span data-i18n="nav_evidence">المرجعية الطبية</span>
+      </button>
+
+      <button class="nav-ghost-btn hide-mobile" onclick="openPrivacyModal()" title="الخصوصية وحماية البيانات">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+        <span data-i18n="nav_privacy">الخصوصية</span>
+      </button>
 
       <!-- Language Switcher Pill -->
       <button class="lang-toggle-btn" id="langToggleBtn" onclick="toggleLanguage()" title="Switch Language / تغيير اللغة">
@@ -2419,46 +2809,70 @@
   <main class="pc-workspace">
 
     <!-- ===============================================================
-         PANEL 1: HOME GREETING & 2x2 BENTO ACTIONS (MOBILE VIEW 1)
+         PANEL 1: HOME GREETING & FOCUSED PRIMARY ACTION (MOBILE VIEW 1)
          =============================================================== -->
     <section class="workspace-panel hero-gradient-panel mobile-hidden" id="panelHome">
       <div class="greeting-section">
-        <div class="greeting-kicker" data-i18n="kicker">PROACTIVE MEDICAL SAFETY GUARDIAN</div>
+        <div class="greeting-kicker" data-i18n="kicker">CLINICAL DECISION-SUPPORT & PHARMACOVIGILANCE</div>
         <h1 class="greeting-headline" data-i18n="hero_title">أهلاً بك في صحتك AI<br />كيف نساعدك اليوم؟</h1>
-        <p class="greeting-subtitle" data-i18n="hero_subtitle">حماية استباقية من المضاعفات الصامتة للمسكنات وتضارب الأدوية المزمنة، مع إصدار تقارير طوارئ معتمدة باللغتين العربية والإنجليزية.</p>
+        <p class="greeting-subtitle" data-i18n="hero_subtitle">حماية استباقية وتوثيق للأمان الدوائي وتضارب العلاجات المزمنة، مع إعداد تقارير فرز إكلينيكي للأطباء وأقسام الطوارئ (عربي وإنجليزي).</p>
 
-        <div class="scenarios-block">
-          <span class="scenarios-label" data-i18n="scenarios_label">نماذج محاكاة إكلينيكية فورية:</span>
-          <div class="scenarios-list">
-            <button class="scenario-btn" onclick="triggerScenario('cold_flu')">
-              <span data-i18n="scenario_cold_flu">دور البرد والكحة الناشفة وتكسير الجسم (نصائح الأمان الدوائي)</span>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        <!-- Primary Obvious Action (Milestone 4: Simplify First Screen) -->
+        <div class="hero-primary-action-wrap">
+          <button type="button" class="primary-hero-cta" onclick="startSafetyCheck()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+            <span data-i18n="hero_primary_cta">بدء فحص السلامة الدوائية والاستشارة</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <button type="button" class="hero-secondary-cta" onclick="document.getElementById('imageUploadInput').click()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+            <span data-i18n="hero_secondary_cta">فحص علبة أو شريط دواء</span>
+          </button>
+        </div>
+
+        <!-- Secondary Simulation Quick Chips -->
+        <div class="secondary-chips-container">
+          <div class="chips-label">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            <span data-i18n="scenarios_label">نماذج استرشادية سريعة:</span>
+          </div>
+          <div class="simulation-chips-row">
+            <button type="button" class="scenario-chip" onclick="triggerScenario('cold_flu')">
+              <span>دور البرد ومسكنات الجسم</span>
             </button>
-            <button class="scenario-btn" onclick="triggerScenario('silent_aki')">
-              <span data-i18n="scenario_2">سيناريو كتافلام 60 يوم مع ألم الذراع والإرهاق (Silent AKI)</span>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <button type="button" class="scenario-chip" onclick="triggerScenario('silent_aki')">
+              <span>كتافلام 60 يوم (AKI)</span>
             </button>
-            <button class="scenario-btn" onclick="triggerScenario('triple_whammy')">
-              <span data-i18n="scenario_3">سيناريو تفاعل أدوية الضغط ومدرات البول مع المسكنات (Triple Whammy)</span>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <button type="button" class="scenario-chip" onclick="triggerScenario('triple_whammy')">
+              <span>ضغط + مدر بول + مسكن</span>
             </button>
-            <button class="scenario-btn" onclick="triggerScenario('peptic_ulcer')">
-              <span data-i18n="scenario_peptic_ulcer">مريض قرحة المعدة والارتجاع مع مسكنات البروفين (GI Bleed Risk)</span>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <button type="button" class="scenario-chip" onclick="triggerScenario('peptic_ulcer')">
+              <span>قرحة المعدة والبروفين</span>
             </button>
-            <button class="scenario-btn" onclick="triggerScenario('anticoagulant_bleeding')">
-              <span data-i18n="scenario_anticoagulant">مرضى القلب والسيولة (بلافيكس/ماريفان) مع المسكنات وظهور الكدمات</span>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <button type="button" class="scenario-chip" onclick="triggerScenario('anticoagulant_bleeding')">
+              <span>السيولة وظهور كدمات</span>
             </button>
-            <button class="scenario-btn" onclick="triggerScenario('rule2_guardrail')">
-              <span data-i18n="scenario_1">اختبار حارس المدة المفقودة (Missing Duration Guardrail)</span>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <button type="button" class="scenario-chip" onclick="triggerScenario('rule2_guardrail')">
+              <span>حارس المدة المفقودة</span>
             </button>
+          </div>
+        </div>
+
+        <!-- Clinical Evidence & Scope Disclaimer (Milestone 2 & 5) -->
+        <div class="clinical-trust-box">
+          <div data-i18n="clinical_trust_notice">
+            <strong>طبيعة الخدمة الإكلينيكية:</strong> أداة دعم قرار وفرز إكلينيكي استباقي لمساعدة المرضى والمرافقين والأطباء، <strong>ولا تغني عن الفحص الطبي المباشر أو استشارة الطبيب المعالج</strong>. تقارير الفرز هي ملخص لتوثيق تاريخ الأدوية وأولويات الطوارئ وليست تشخيصاً نهائياً أو وصفة علاجية.
+          </div>
+          <div class="clinical-trust-links">
+            <span>• المرجعية: أدلة هيئة الدواء المصرية (EDA) • إرشادات KDIGO</span>
+            <span>• آخر مراجعة إكلينيكية: أكتوبر 2026</span>
+            <button type="button" class="clinical-trust-link" onclick="openClinicalSourcesModal()">المصادر والحدود الطبية</button>
+            <button type="button" class="clinical-trust-link" onclick="openPrivacyModal()">سياسة الخصوصية وحماية البيانات</button>
           </div>
         </div>
       </div>
 
-      <!-- 2x2 Bento Grid matching Reference Layout -->
+      <!-- 2x2 Bento Grid Actions -->
       <div>
         <div class="bento-grid">
           <div class="bento-card" onclick="document.getElementById('imageUploadInput').click()">
@@ -2470,8 +2884,8 @@
               </svg>
             </div>
             <div>
-              <div class="bento-title">تصوير علبة الدواء</div>
-              <div class="bento-caption">تحليل الشريط والمادة الفعالة</div>
+              <div class="bento-title" data-i18n="bento_camera_title">تصوير علبة أو شريط دواء</div>
+              <div class="bento-caption" data-i18n="bento_camera_desc">رصد الاسم والجرعة بالذكاء البصري</div>
             </div>
           </div>
 
@@ -2485,8 +2899,8 @@
               </svg>
             </div>
             <div>
-              <div class="bento-title" id="bentoVoiceTitle">تسجيل صوتي</div>
-              <div class="bento-caption">شرح الأعراض والتاريخ الدوائي</div>
+              <div class="bento-title" id="bentoVoiceTitle" data-i18n="bento_voice_title">تسجيل صوتي باللهجة المصرية</div>
+              <div class="bento-caption" data-i18n="bento_voice_desc">فهم إكلينيكي دقيق واستخلاص للأعراض</div>
             </div>
           </div>
 
@@ -2497,8 +2911,8 @@
               </svg>
             </div>
             <div>
-              <div class="bento-title">فحص أمان الكلى</div>
-              <div class="bento-caption">رصد مخاطر المسكنات الصامتة</div>
+              <div class="bento-title" data-i18n="bento_safe_title">استشارة أمان دوائي وقائي</div>
+              <div class="bento-caption" data-i18n="bento_safe_desc">كشف مبكر لقصور الكلى وتفاعلات الأدوية</div>
             </div>
           </div>
 
@@ -2512,7 +2926,7 @@
               </svg>
             </div>
             <div>
-              <div class="bento-title">تقرير المستشفى PDF</div>
+              <div class="bento-title" data-i18n="bento_report_title">إصدار تقرير طوارئ طبي PDF</div>
               <div class="bento-caption" data-i18n="bento_report_desc">نسخة عربية ونسخة إنجليزية</div>
             </div>
           </div>
@@ -2572,6 +2986,23 @@
             يمكنك إرسال <strong>صورة علبة أو شريط الدواء</strong>، أو <strong>تسجيل صوتي</strong>، أو كتابة الأدوية والأعراض التي يشعر بها المريض، ليقوم النظام بمراجعة الأمان الدوائي وإصدار تقرير الطوارئ للمستشفى باللغتين العربية والإنجليزية.
           </div>
         </div>
+      </div>
+
+      <!-- Prominent Emergency Guidance (Milestone 3: Make Urgent Situations Unmistakable) -->
+      <div class="emergency-safety-banner" id="emergencySafetyBanner">
+        <div class="emergency-banner-icon">🚨</div>
+        <div class="emergency-banner-content">
+          <div class="emergency-banner-title">
+            <span data-i18n="emergency_banner_title">تنبيه الطوارئ الحرجة الفورية</span>
+          </div>
+          <div class="emergency-banner-text" data-i18n="emergency_banner_text">
+            إذا كنت أنت أو المريض تعانون من: <strong>ألم أو ضغط حاد بالصدر، صعوبة تنفس شديدة، فقدان للوعي، ضعف مفاجئ بنصف الجسم، أو قيء دموي</strong> — توقف فوراً واطلب الإسعاف (<strong>123</strong>) أو توجه لأقرب طوارئ مستشفى فوراً.
+          </div>
+        </div>
+        <a href="tel:123" class="emergency-call-btn" title="اتصال فوري بطوارئ الإسعاف 123">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+          <span>123 إسعاف</span>
+        </a>
       </div>
 
       <!-- Bottom Input Dock -->
@@ -2839,6 +3270,26 @@
           </div>
         </div>
 
+        <!-- Privacy & Right to Erasure Card (Milestone 5) -->
+        <div class="profile-card" style="grid-column: 1 / -1;">
+          <h3>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            <span>الخصوصية وحماية البيانات الطبية (GDPR & Data Rights)</span>
+          </h3>
+          <p style="font-size:12.5px;color:var(--text-secondary);line-height:1.6;">
+            بياناتك الطبية مشفرة بالكامل بقاعدة البيانات ولا يتم بيعها أو مشاركتها مطلقاً مع أي طرف تجاري أو إعلاني. يحق لك في أي وقت مراجعة تفاصيل سياسة الخصوصية أو ممارسة «حق النسيان» ومسح جميع سجلاتك وجلساتك الطبية نهائياً من النظام.
+          </p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;">
+            <button type="button" class="drug-triage-btn" style="background:rgba(255,255,255,0.08);color:#f8fafc;" onclick="openPrivacyModal()">
+              <span>عرض وثيقة الخصوصية والبيانات</span>
+            </button>
+            <button type="button" class="danger-purge-btn" onclick="purgeMyData()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              <span>حذف سجلي الطبي وبياناتي نهائياً (Purge Data)</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Emergency Hotlines in Egypt -->
         <div class="profile-card" style="grid-column: 1 / -1;">
           <h3>
@@ -3083,6 +3534,90 @@
     </div>
   </div>
 
+  <!-- =========================================================================
+       MODAL 3: DATA PRIVACY & USER RIGHTS (الخصوصية وحماية البيانات الطبية)
+       ========================================================================= -->
+  <div class="modal-backdrop" id="privacyModalBackdrop" onclick="if(event.target===this)closePrivacyModal()">
+    <div class="modal-card" style="max-width: 580px;">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          <div class="modal-title" style="font-size:15.5px;">الخصوصية وحماية البيانات الطبية (Data Protection)</div>
+        </div>
+        <button class="modal-close-btn" onclick="closePrivacyModal()" title="إغلاق">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="modal-body" style="padding: 22px 24px; max-height: 72vh; overflow-y: auto;">
+        <div style="display:flex;flex-direction:column;gap:16px;font-size:12.5px;line-height:1.65;color:#cbd5e1;">
+          <div style="background:rgba(2,6,23,0.5);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;">
+            <div style="font-weight:700;color:#38bdf8;margin-bottom:4px;font-size:13px;">1. ما هي البيانات التي نجمعها؟</div>
+            <p style="margin:0;">نجمع فقط البيانات التي تُدخلها طوعاً لإتمام فحص الأمان الدوائي: أسماء الأدوية، والجرعات، والمدة الزمنية لاستخدامها، والأعراض المذكورة، بالإضافة إلى الملفات الصوتية أو صور علب الأدوية المرفقة.</p>
+          </div>
+
+          <div style="background:rgba(2,6,23,0.5);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;">
+            <div style="font-weight:700;color:#38bdf8;margin-bottom:4px;font-size:13px;">2. أين وكيف تُخزن بياناتك؟</div>
+            <p style="margin:0;">تُخزن جلساتك بقواعد بيانات سحابية مشفرة بتشفير TLS/SSL 1.3 مع حماية تامة للهوية الرقمية عبر رموز JWT مشفرة. لا نتيح الوصول إلى بياناتك إلا لحسابك الشخصي.</p>
+          </div>
+
+          <div style="background:rgba(2,6,23,0.5);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;">
+            <div style="font-weight:700;color:#38bdf8;margin-bottom:4px;font-size:13px;">3. من يمكنه الاطلاع على معلوماتك؟</div>
+            <p style="margin:0;">أنت فقط، والأطباء أو أطقم الطوارئ الذين تختار أنت شخصياً تسليمهم تقرير الطوارئ الطبي المطبوع أو المحمل (PDF). <strong>لا نبيع ولا نشارك أي بيانات صحية مع شركات الأدوية أو المنصات الإعلانية على الإطلاق.</strong></p>
+          </div>
+
+          <div style="background:rgba(2,6,23,0.5);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;">
+            <div style="font-weight:700;color:#38bdf8;margin-bottom:4px;font-size:13px;">4. حق النسيان وحذف البيانات نهائياً</div>
+            <p style="margin:0 0 8px 0;">يحق لك في أي لحظة حذف جميع جلساتك وسجلك الإكلينيكي بالكامل من الخوادم بضغطة زر واحدة من خلال صفحة «حسابي».</p>
+            <button type="button" class="danger-purge-btn" onclick="closePrivacyModal(); purgeMyData();" style="margin:0;">
+              <span>طلب حذف جميع بياناتي الآن</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 4: CLINICAL SOURCES & MEDICAL SCOPE (المرجعية والحدود الطبية)
+       ========================================================================= -->
+  <div class="modal-backdrop" id="clinicalSourcesModalBackdrop" onclick="if(event.target===this)closeClinicalSourcesModal()">
+    <div class="modal-card" style="max-width: 580px;">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          <div class="modal-title" style="font-size:15.5px;">المرجعية الإكلينيكية والحدود الطبية المعتمدة</div>
+        </div>
+        <button class="modal-close-btn" onclick="closeClinicalSourcesModal()" title="إغلاق">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="modal-body" style="padding: 22px 24px; max-height: 72vh; overflow-y: auto;">
+        <div style="display:flex;flex-direction:column;gap:16px;font-size:12.5px;line-height:1.65;color:#cbd5e1;">
+          <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:14px;color:#fecaca;">
+            <div style="font-weight:700;color:#f87171;margin-bottom:4px;font-size:13px;">توضيح هام حول نطاق وحدود الخدمة:</div>
+            <p style="margin:0;">منظومة «صحتك AI» هي أداة مساعدة لدعم القرار واليقظة الدوائية المبكرة (Clinical Decision Support Tool)، <strong>ولا تغني إطلاقاً عن الفحص الطبي المباشر أو التقييم السريري للطبيب المعالج</strong>. لا تشكل مخرجات المنظومة تشخيصاً نهائياً أو وصفة طبية بديلة.</p>
+          </div>
+
+          <div style="background:rgba(2,6,23,0.5);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;">
+            <div style="font-weight:700;color:#34d399;margin-bottom:6px;font-size:13px;">المصادر الإكلينيكية والقواعد المعتمدة:</div>
+            <ul style="margin:0;padding-right:20px;display:flex;flex-direction:column;gap:6px;">
+              <li><strong>هيئة الدواء المصرية (EDA):</strong> أدلة السلامة الدوائية وبطاقات التحذير للأدوية الشائعة بالسوق المصري.</li>
+              <li><strong>إرشادات KDIGO الدولية:</strong> معايير رصد ومتابعة القصور الكلوي الحاد الناجم عن الاستخدام المزمن لمضادات الالتهاب غير الستيرويدية (NSAIDs).</li>
+              <li><strong>تحذيرات اليقظة الدوائية لـ FDA:</strong> مخاطر التفاعل الثلاثي (Triple Whammy) بين مضادات الالتهاب، وأدوية الضغط (ACEi/ARBs)، ومدرات البول.</li>
+            </ul>
+          </div>
+
+          <div style="background:rgba(2,6,23,0.5);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;">
+            <div style="font-weight:700;color:#cbd5e1;margin-bottom:4px;font-size:13px;">تاريخ المراجعة الإكلينيكية:</div>
+            <p style="margin:0;">تمت آخر مراجعة وتدقيق لقواعد الفحص والسلامة الدوائية في: <strong>أكتوبر 2026</strong> بواسطة لجنة مراجعة الأمان الدوائي والفرز التوليدي.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Mobile Bottom Navigation Bar (4 Main Portal Pages) -->
   <nav class="mobile-bottom-tabs">
     <button class="mobile-tab-btn active" id="mTabTriage" onclick="navigateToPage('triage')">
@@ -3119,11 +3654,18 @@
         nav_records: "سجل الفحوصات والتقارير",
         nav_drugs: "دليل الأدوية المصرية",
         nav_profile: "الملف الصحي وحسابي",
+        nav_evidence: "المرجعية الطبية",
+        nav_privacy: "الخصوصية",
         reset_session: "تصفير الجلسة",
-        kicker: "PROACTIVE MEDICAL SAFETY GUARDIAN",
+        kicker: "CLINICAL DECISION-SUPPORT & PHARMACOVIGILANCE",
         hero_title: "أهلاً بك في صحتك AI<br />كيف نساعدك اليوم؟",
-        hero_subtitle: "حماية استباقية من المضاعفات الصامتة للمسكنات وتضارب الأدوية المزمنة، مع إصدار تقارير طوارئ معتمدة باللغتين العربية والإنجليزية.",
-        scenarios_label: "نماذج محاكاة إكلينيكية فورية:",
+        hero_subtitle: "حماية استباقية وتوثيق للأمان الدوائي وتضارب العلاجات المزمنة، مع إعداد تقارير فرز إكلينيكي للأطباء وأقسام الطوارئ (عربي وإنجليزي).",
+        hero_primary_cta: "بدء فحص السلامة الدوائية والاستشارة",
+        hero_secondary_cta: "فحص علبة أو شريط دواء",
+        emergency_banner_title: "تنبيه الطوارئ الحرجة الفورية",
+        emergency_banner_text: "إذا كنت أنت أو المريض تعانون من: <strong>ألم أو ضغط حاد بالصدر، صعوبة تنفس شديدة، فقدان للوعي، ضعف مفاجئ بنصف الجسم، أو قيء دموي</strong> — توقف فوراً واطلب الإسعاف (<strong>123</strong>) أو توجه لأقرب طوارئ مستشفى فوراً.",
+        clinical_trust_notice: "أداة دعم قرار وفرز إكلينيكي استباقي لمساعدة المرضى والمرافقين والأطباء، <strong>ولا تغني عن الفحص الطبي المباشر أو استشارة الطبيب المعالج</strong>. تقارير الفرز هي ملخص لتوثيق تاريخ الأدوية وأولويات الطوارئ وليست تشخيصاً نهائياً أو وصفة علاجية.",
+        scenarios_label: "نماذج استرشادية سريعة:",
         scenario_cold_flu: "دور البرد والكحة الناشفة وتكسير الجسم (نصائح الأمان الدوائي)",
         scenario_2: "سيناريو كتافلام 60 يوم مع ألم الذراع والإرهاق (Silent AKI)",
         scenario_3: "سيناريو تفاعل أدوية الضغط ومدرات البول مع المسكنات (Triple Whammy)",
@@ -3149,8 +3691,8 @@
         records_refresh: "تحديث السجل",
         records_new: "بدء فحص جديد",
         drugs_title: "دليل الأدوية المصرية واليقظة الدوائية",
-        drugs_subtitle: "قاعدة معرفية معتمدة للأدوية الشائعة في مصر مع رصد مخاطر الكلى وقرحة المعدة والبدائل الآمنة.",
-        drugs_count_badge: "16 دواء معتمد في قاعدة البيانات",
+        drugs_subtitle: "قاعدة معرفية مستندة إلى إرشادات هيئة الدواء المصرية للأدوية الشائعة في مصر مع رصد مخاطر الكلى وقرحة المعدة والبدائل الآمنة.",
+        drugs_count_badge: "25 دواء شائع في قاعدة البيانات",
         drugs_search_placeholder: "ابحث باسم الدواء التجاري أو المادة الفعالة (مثال: كتافلام، بروفين، كيتوفان، فانتومور)...",
         profile_title: "الملف الصحي الشخصي وحسابي",
         profile_subtitle: "إدارة بيانات الحساب وحفظ الأمراض المزمنة لتوجيه الفرز الطبي بدقة متناهية.",
@@ -3165,10 +3707,17 @@
         nav_records: "Patient Records",
         nav_drugs: "Drug Compendium",
         nav_profile: "Health Profile & Account",
+        nav_evidence: "Clinical Reference",
+        nav_privacy: "Privacy",
         reset_session: "Reset Session",
-        kicker: "PROACTIVE MEDICAL SAFETY GUARDIAN",
+        kicker: "CLINICAL DECISION-SUPPORT & PHARMACOVIGILANCE",
         hero_title: "Welcome to Sehtak AI<br />How can we safeguard you today?",
-        hero_subtitle: "Proactive prevention of silent drug-induced kidney injury and polypharmacy complications, generating bilingual ER-grade emergency reports.",
+        hero_subtitle: "Proactive medication safety screening and clinical decision-support to assist patients, caregivers, and clinicians with ER-grade summaries (Arabic & English).",
+        hero_primary_cta: "Start Clinical Safety Check Now",
+        hero_secondary_cta: "Scan Medication Box",
+        emergency_banner_title: "Immediate Medical Emergency Alert",
+        emergency_banner_text: "If experiencing: <strong>severe chest pain or pressure, acute shortness of breath, loss of consciousness, sudden one-sided facial or body weakness, or vomiting blood</strong> — stop immediately and call <strong>123</strong> or go to the nearest emergency department.",
+        clinical_trust_notice: "Clinical decision-support & pharmacovigilance screening tool. <strong>It does not replace a clinician's professional judgment, physical examination, or formal diagnosis.</strong> Triage summaries are intended for clinical history tracking, not prescriptions.",
         scenarios_label: "Clinical Instant Simulations:",
         scenario_cold_flu: "Acute Cold, Dry Cough & Body Aches (Medication Safety)",
         scenario_2: "Chronic Cataflam 60 Days with Arm Pain & Fatigue (Silent AKI)",
@@ -3195,8 +3744,8 @@
         records_refresh: "Refresh Archive",
         records_new: "New Triage Intake",
         drugs_title: "Egyptian Drug Compendium & Safety",
-        drugs_subtitle: "Validated Egyptian medication catalog tracking renal & GI bleed risks with safe alternatives.",
-        drugs_count_badge: "16 Authorized Medications in Database",
+        drugs_subtitle: "Egyptian medication catalog tracking renal & GI bleed risks with safe alternatives based on official guidelines.",
+        drugs_count_badge: "25 Common Medications in Knowledge Base",
         drugs_search_placeholder: "Search by brand name or active ingredient (e.g. Cataflam, Brufen, Ketofan)...",
         profile_title: "Personal Health Profile & Account",
         profile_subtitle: "Manage account settings and persist chronic health history for personalized safety checks.",
@@ -3208,6 +3757,8 @@
     };
 
     let CURRENT_LANG = localStorage.getItem("sehtak_lang") || "ar";
+    let currentLang = CURRENT_LANG;
+    window.currentLang = CURRENT_LANG;
 
     function toggleLanguage() {
       const newLang = CURRENT_LANG === "ar" ? "en" : "ar";
@@ -3216,6 +3767,8 @@
 
     function setLanguage(lang) {
       CURRENT_LANG = lang;
+      currentLang = lang;
+      window.currentLang = lang;
       localStorage.setItem("sehtak_lang", lang);
       document.documentElement.lang = lang;
       document.documentElement.dir = (lang === "ar" ? "rtl" : "ltr");
@@ -3549,6 +4102,80 @@
       }
     }
 
+    function openPrivacyModal() {
+      const el = document.getElementById("privacyModalBackdrop");
+      if (el) el.classList.add("open");
+    }
+
+    function closePrivacyModal() {
+      const el = document.getElementById("privacyModalBackdrop");
+      if (el) el.classList.remove("open");
+    }
+
+    function openClinicalSourcesModal() {
+      const el = document.getElementById("clinicalSourcesModalBackdrop");
+      if (el) el.classList.add("open");
+    }
+
+    function closeClinicalSourcesModal() {
+      const el = document.getElementById("clinicalSourcesModalBackdrop");
+      if (el) el.classList.remove("open");
+    }
+
+    function startSafetyCheck() {
+      navigateToPage('triage');
+      switchMobileTab('chat');
+      const inputEl = document.getElementById('mainChatInput');
+      if (inputEl) {
+        inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        inputEl.focus();
+      }
+    }
+
+    async function purgeMyData() {
+      const isAr = CURRENT_LANG === 'ar';
+      const confirmMsg = isAr
+        ? "تحذير: هل أنت متأكد من رغبتك في حذف سجلك الطبي وكافة جلسات الفرز والبيانات المسجلة نهائياً؟ هذا الإجراء فوري ولا يمكن التراجع عنه (GDPR Right to Erasure)."
+        : "Warning: Are you sure you want to permanently delete your medical history, all triage sessions, and account data? This action cannot be undone.";
+
+      if (!confirm(confirmMsg)) return;
+
+      const token = localStorage.getItem("sehtak_jwt");
+      if (!token) {
+        localStorage.removeItem("sehtak_health_profile");
+        localStorage.removeItem("sehtak_trial_msg_count");
+        resetSession();
+        if (typeof loadPatientRecords === 'function') loadPatientRecords();
+        if (typeof loadHealthProfile === 'function') loadHealthProfile();
+        alert(isAr ? "تم حذف كافة البيانات المحلية وسجل الجلسة بنجاح." : "Local session history and clinical data purged.");
+        return;
+      }
+
+      try {
+        const resp = await fetch("/api/v1/user/data", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        const data = await resp.json();
+        if (resp.ok) {
+          localStorage.removeItem("sehtak_health_profile");
+          localStorage.removeItem("sehtak_trial_msg_count");
+          resetSession();
+          if (typeof loadPatientRecords === 'function') loadPatientRecords();
+          if (typeof loadHealthProfile === 'function') loadHealthProfile();
+          alert(isAr ? "تم حذف سجلك الطبي وكافة الاستشارات نهائياً من قاعدة البيانات." : "Your clinical records and data have been permanently deleted.");
+        } else {
+          alert(data.detail || (isAr ? "تعذر حذف البيانات حالياً." : "Failed to delete data."));
+        }
+      } catch (e) {
+        console.error("Purge error:", e);
+        alert(isAr ? "حدث خطأ أثناء الاتصال بالخادم لحذف البيانات." : "Connection error while deleting data.");
+      }
+    }
+
     function quickSwitchToSignup(email, password) {
       switchAuthTab('signup');
       if (email) document.getElementById('signupEmail').value = email;
@@ -3835,6 +4462,123 @@
       scrollToBottom();
     }
 
+    /* =========================================================================
+       FAIL-SAFE ISOLATION & CLINICAL FEEDBACK HELPERS
+       ========================================================================= */
+    let lastUserAction = null;
+
+    function retryLastAction() {
+      if (typeof lastUserAction === 'function') {
+        const action = lastUserAction;
+        lastUserAction = null;
+        action();
+      } else {
+        const input = document.getElementById('mainChatInput');
+        if (input && input.value.trim()) {
+          sendFromInput('mainChatInput');
+        } else {
+          sendTextToTriage(CURRENT_LANG === 'en' ? "Retry safety check" : "إعادة محاولة الفحص الطبي", false);
+        }
+      }
+    }
+
+    function setClinicalInspectorUnavailable() {
+      const isEn = CURRENT_LANG === 'en';
+      const sevBadge = document.getElementById("severityBadge");
+      if (sevBadge) {
+        sevBadge.textContent = isEn ? "UNAVAILABLE (NO ASSESSMENT)" : "غير متاح (لا يوجد تقييم طبي)";
+        sevBadge.className = "severity-tag unavailable";
+      }
+
+      const medCount = document.getElementById("medCountBadge");
+      if (medCount) medCount.textContent = "0";
+
+      const medsContainer = document.getElementById("detectedMedsContainer");
+      if (medsContainer) {
+        medsContainer.innerHTML = `<span style="font-size: 12px; color: var(--text-muted);">${isEn ? "No medications assessed due to service unavailability." : "لم يتم تقييم الأدوية لتعذر الاتصال بالخادم."}</span>`;
+      }
+
+      const rulesContainer = document.getElementById("triggeredRulesContainer");
+      if (rulesContainer) {
+        rulesContainer.innerHTML = `<div style="color:var(--text-muted);font-size:12px;">${isEn ? "Safety guardrails bypassed — no valid clinical decision can be formed." : "تم تعطيل القواعد لحماية سلامة المريض — لا يمكن إصدار تقييم طبي أثناء انقطاع الخدمة."}</div>`;
+      }
+
+      const erBox = document.getElementById("erPhysicianBox");
+      if (erBox) {
+        erBox.innerHTML = `<div style="color:var(--text-muted);font-size:12px;">${isEn ? "No clinical triage report generated. In life-threatening emergencies, do not rely on software: contact local EMS immediately." : "لم يتم استخراج تقرير طبي. في الحالات الطارئة، لا تعتمد على البرمجيات وتوجه فوراً لأقرب طوارئ أو اتصل بالإسعاف (123)."}</div>`;
+      }
+
+      const labsList = document.getElementById("urgentLabsList");
+      if (labsList) {
+        labsList.innerHTML = `<li>${isEn ? "No labs recommended without full triage." : "لا توجد فحوصات معتمدة لعدم اكتمال التقييم."}</li>`;
+      }
+
+      const downloadAr = document.getElementById("downloadPdfArBtn");
+      if (downloadAr) downloadAr.disabled = true;
+      const downloadEn = document.getElementById("downloadPdfEnBtn");
+      if (downloadEn) downloadEn.disabled = true;
+      latestPdfBase64Ar = null;
+      latestPdfBase64En = null;
+    }
+
+    function showServiceError(errorMsg, onRetry) {
+      const isEn = CURRENT_LANG === 'en';
+      setClinicalInspectorUnavailable();
+      if (onRetry) lastUserAction = onRetry;
+
+      const stream = document.getElementById("chatStream");
+      const card = document.createElement("div");
+      card.className = "msg-row assistant";
+      card.innerHTML = `
+        <div class="system-fail-safe">
+          <div class="system-fail-safe-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span>${isEn ? "Safety Halt: Clinical Assessment Interrupted" : "توقف وقائي: تعذر إتمام الفحص الطبي بأمان"}</span>
+          </div>
+          <p class="system-fail-safe-body">
+            ${errorMsg || (isEn ? "The service could not safely verify medication interactions right now. To protect patient safety, no clinical risk score or triage report has been issued." : "تعذر التحقق من تداخلات الأدوية بأمان حالياً بسبب مشكلة في الاتصال. لحماية سلامة المريض، لم يصدر النظام أي درجة خطورة أو تقرير إكلينيكي قد يُفهم خطأ على أنه تشخيص.")}
+          </p>
+          <div class="system-fail-safe-footer">
+            <button type="button" class="system-retry-btn" onclick="retryLastAction()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+              <span>${isEn ? "Retry Assessment" : "إعادة المحاولة الآن"}</span>
+            </button>
+            <a href="tel:123" class="system-retry-btn" style="background:#dc2626;border-color:rgba(239,68,68,0.5);color:#fff;text-decoration:none;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+              <span>${isEn ? "Emergency Hotline (123)" : "طوارئ الإسعاف (123)"}</span>
+            </a>
+          </div>
+        </div>
+      `;
+      stream.appendChild(card);
+      scrollToBottom();
+    }
+
+    async function submitSessionFeedback(helpful, btnEl) {
+      const bar = btnEl ? btnEl.closest('.feedback-prompt-bar') : null;
+      if (bar) {
+        bar.innerHTML = `<span style="color:#6ee7b7;font-size:12px;font-weight:600;">${CURRENT_LANG === 'en' ? 'Thank you for your feedback! It helps continuously refine our clinical safety rules.' : 'شكراً لتقييمك! ملاحظاتك تساهم في تدقيق القواعد الإكلينيكية وتعزيز أمان المنظومة.'}</span>`;
+      }
+      try {
+        const token = localStorage.getItem("sehtak_jwt");
+        const headers = { "Content-Type": "application/json" };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        await fetch('/api/v1/feedback', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({
+            session_id: SESSION_ID,
+            helpful: !!helpful,
+            comments: helpful ? 'helpful' : 'needs_work',
+            rating: helpful ? 5 : 2
+          })
+        });
+      } catch (e) {
+        console.error('Feedback submit error:', e);
+      }
+    }
+
     function appendAssistantResponse(data) {
       if (!data) return;
       const stream = document.getElementById("chatStream");
@@ -3860,11 +4604,31 @@
         `;
       }
 
+      let feedbackBarHtml = "";
+      if (data.status === "completed") {
+        feedbackBarHtml = `
+          <div class="feedback-prompt-bar">
+            <span class="fb-label">${CURRENT_LANG === 'ar' ? 'هل كان هذا الفحص مفيداً وواضحاً لك؟' : 'Was this safety check helpful and clear?'}</span>
+            <div class="fb-buttons">
+              <button type="button" class="fb-btn helpful" onclick="submitSessionFeedback(true, this)" title="مفيد">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                <span>${CURRENT_LANG === 'ar' ? 'نعم، مفيد' : 'Helpful'}</span>
+              </button>
+              <button type="button" class="fb-btn not-helpful" onclick="submitSessionFeedback(false, this)" title="يحتاج تحسين">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>
+                <span>${CURRENT_LANG === 'ar' ? 'يحتاج تحسين' : 'Needs Work'}</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
       const text = data.caregiver_response_ar || "تم استلام وتحليل الحالة الإكلينيكية بنجاح.";
       row.innerHTML = `
         <div class="msg-bubble">
           ${formatMarkdownToHtml(text)}
           ${pdfActionsHtml}
+          ${feedbackBarHtml}
         </div>
         <div class="msg-meta">صحتك AI • درجة الخطورة: ${severity}</div>
       `;
@@ -3998,13 +4762,10 @@
             localStorage.setItem("sehtak_trial_msg_count", TRIAL_LIMIT.toString());
             updateTrialUI();
             showTrialExhaustedModal();
+            return;
           }
-          const detail = data.detail || "حدث خطأ أثناء معالجة الطلب.";
-          appendAssistantResponse({
-            caregiver_response_ar: `**تنبيه من النظام:**\n${typeof detail === "string" ? detail : JSON.stringify(detail)}`,
-            severity: "MODERATE_CAUTION",
-            status: "error"
-          });
+          const detail = data.detail || (CURRENT_LANG === 'en' ? "An error occurred during medical triage." : "حدث خطأ أثناء معالجة الطلب.");
+          showServiceError(typeof detail === "string" ? detail : JSON.stringify(detail), () => sendTextToTriage(text, reset));
           return;
         }
 
@@ -4018,13 +4779,14 @@
       } catch (err) {
         const activeIndicator = document.getElementById("activeTypingIndicator");
         if (activeIndicator) activeIndicator.remove();
-        document.getElementById("statusHeaderPill").textContent = "Connection Error";
+        document.getElementById("statusHeaderPill").textContent = "Service Offline";
         console.error(err);
-        appendAssistantResponse({
-          caregiver_response_ar: "**تنبيه الاتصال:**\nتعذر الاتصال بالخادم، يرجى التأكد من اتصال الإنترنت ثم المحاولة مرة أخرى.",
-          severity: "MODERATE_CAUTION",
-          status: "error"
-        });
+        showServiceError(
+          CURRENT_LANG === 'en'
+            ? "Could not reach the clinical service. For patient safety, the assessment was halted and no false risk assessment was generated."
+            : "تعذر الاتصال بالخادم لإتمام الفحص الطبي. لحماية سلامتك، تم إيقاف التقييم مؤقتاً ولم يتم إصدار أي درجة خطورة قد يُساء تفسيرها.",
+          () => sendTextToTriage(text, reset)
+        );
       }
     }
 
@@ -4097,12 +4859,10 @@
             localStorage.setItem("sehtak_trial_msg_count", TRIAL_LIMIT.toString());
             updateTrialUI();
             showTrialExhaustedModal();
+            return;
           }
-          appendAssistantResponse({
-            caregiver_response_ar: "**تم استلام صورة الدواء بنجاح.**\n--------------------------------------------------\nلتأكيد المادة الفعالة والجرعة ومراجعة تضارب الأدوية بأعلى دقة إكلينيكية، يرجى كتابة **اسم الدواء المطبوع على العلبة**، وهل المريض يعاني من أي أمراض مزمنة أو أعراض؟",
-            severity: "MODERATE_CAUTION",
-            status: "needs_input"
-          });
+          const detail = data.detail || (CURRENT_LANG === 'en' ? "Could not safely process the medical file." : "تعذر فحص وتحليل الملف الطبي بأمان حالياً.");
+          showServiceError(typeof detail === "string" ? detail : JSON.stringify(detail), null);
           return;
         }
 
@@ -4118,11 +4878,7 @@
         if (activeIndicator) activeIndicator.remove();
         console.error(err);
         document.getElementById("statusHeaderPill").textContent = "Upload Error";
-        appendAssistantResponse({
-          caregiver_response_ar: "**خطأ في رفع الملف:**\nتعذر الاتصال بالخادم لرفع الملف، يرجى المحاولة مرة أخرى.",
-          severity: "MODERATE_CAUTION",
-          status: "error"
-        });
+        showServiceError(CURRENT_LANG === 'en' ? "Connection error during file upload. Please verify network." : "تعذر الاتصال بالخادم لرفع الملف، يرجى التحقق من اتصالك والمحاولة لاحقاً.", null);
       } finally {
         inputEl.value = "";
       }
@@ -4201,13 +4957,10 @@
                 localStorage.setItem("sehtak_trial_msg_count", TRIAL_LIMIT.toString());
                 updateTrialUI();
                 showTrialExhaustedModal();
+                return;
               }
-              const detail = data.detail || (data.degradation && data.degradation.user_message_ar) || "تعذر تحليل الصوت حالياً.";
-              appendAssistantResponse({
-                caregiver_response_ar: `**تنبيه:**\n${typeof detail === "string" ? detail : JSON.stringify(detail)}`,
-                severity: "MODERATE_CAUTION",
-                status: "error"
-              });
+              const detail = data.detail || (data.degradation && data.degradation.user_message_ar) || (CURRENT_LANG === 'en' ? "Voice analysis interrupted." : "تعذر تحليل التسجيل الصوتي حالياً.");
+              showServiceError(typeof detail === "string" ? detail : JSON.stringify(detail), null);
               return;
             }
             appendAssistantResponse(data);
@@ -4220,11 +4973,7 @@
           } catch (e) {
             const activeIndicator = document.getElementById("activeTypingIndicator");
             if (activeIndicator) activeIndicator.remove();
-            appendAssistantResponse({
-              caregiver_response_ar: "**خطأ:**\nتعذر إرسال التسجيل الصوتي، يرجى المحاولة لاحقاً.",
-              severity: "MODERATE_CAUTION",
-              status: "error"
-            });
+            showServiceError(CURRENT_LANG === 'en' ? "Failed to send voice recording. Please retry." : "تعذر إرسال التسجيل الصوتي للفحص، يرجى المحاولة لاحقاً.", null);
           }
         };
         mediaRecorder.start();

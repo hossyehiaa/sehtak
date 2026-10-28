@@ -28,22 +28,29 @@ from sqlalchemy import text
 from app.ai.errors import IntakeDegradationError
 from app.ai.rag.retriever import retriever
 from app.auth.routes import auth_router, session_router
-from app.auth.security import get_current_user_optional
+from app.auth.security import get_current_user, get_current_user_optional
 from app.bot.telegram_bot import create_telegram_bot_and_dispatcher
 from app.bot.whatsapp_webhook import whatsapp_router
 from app.config import settings
 from app.database.db import (
     AsyncSessionLocal,
     UserModel,
+    delete_user_clinical_data,
     ensure_db_ready,
     get_conversation_history,
     get_patient_intake_session,
     init_db,
     reset_patient_session,
+    save_user_feedback,
 )
 from app.database.egyptian_drugs_seed import EGYPTIAN_DRUG_KNOWLEDGE_BASE
 from app.medical_engine.triage_orchestrator import triage_orchestrator
-from app.schemas.clinical_schemas import ComponentDegradation, TriageAnalyzeRequest, TriageOrchestratorResult
+from app.schemas.clinical_schemas import (
+    ComponentDegradation,
+    FeedbackRequest,
+    TriageAnalyzeRequest,
+    TriageOrchestratorResult,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -321,6 +328,34 @@ async def download_emergency_pdf_report(report_filename: str) -> FileResponse:
         media_type="application/pdf",
         filename=safe_name,
     )
+
+
+@app.post("/api/v1/feedback", tags=["Clinical Quality & Feedback"])
+async def submit_clinical_feedback(
+    payload: FeedbackRequest,
+    current_user: Optional[UserModel] = Depends(get_current_user_optional),
+) -> Dict[str, Any]:
+    user_id = current_user.id if current_user else None
+    await save_user_feedback(
+        session_id=payload.session_id,
+        helpful=payload.helpful,
+        comments=payload.comments,
+        rating=payload.rating,
+        user_id=user_id,
+    )
+    return {"status": "success", "message": "Feedback submitted successfully."}
+
+
+@app.delete("/api/v1/user/data", tags=["Medical Data Privacy"])
+async def purge_user_medical_data(
+    current_user: UserModel = Depends(get_current_user),
+) -> Dict[str, Any]:
+    deleted_count = await delete_user_clinical_data(current_user.id)
+    return {
+        "status": "success",
+        "deleted_sessions_count": deleted_count,
+        "message": "تم حذف سجلاتك وبياناتك الطبية نهائياً بنجاح.",
+    }
 
 
 @app.post("/webhook/telegram", tags=["Telegram Webhook"])

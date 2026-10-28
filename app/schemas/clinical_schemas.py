@@ -317,3 +317,10 @@ class TriageAnalyzeRequest(BaseModel):
     session_id: str = Field(default="web-default-session")
     text_input: Optional[str] = None
     reset_session: bool = False
+
+
+class FeedbackRequest(BaseModel):
+    session_id: str
+    helpful: bool
+    comments: Optional[str] = None
+    rating: Optional[int] = Field(default=None, ge=1, le=5)

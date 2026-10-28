@@ -68,6 +68,20 @@ class DrugCatalogModel(Base):
     clinical_notes = Column(Text, nullable=True)
 
 
+class FeedbackModel(Base):
+    """User feedback for clinical quality review."""
+
+    __tablename__ = "clinical_feedback"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    session_id = Column(String(128), index=True, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    helpful = Column(Integer, default=1, nullable=False)
+    rating = Column(Integer, nullable=True)
+    comments = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+
 import asyncio
 import logging
 
@@ -348,3 +362,41 @@ async def list_user_sessions(user_id: int) -> List[Dict]:
                 "medications": medications,
             })
         return sessions_out
+
+
+async def save_user_feedback(
+    session_id: str,
+    helpful: bool,
+    comments: Optional[str] = None,
+    rating: Optional[int] = None,
+    user_id: Optional[int] = None,
+) -> None:
+    """Stores user feedback for quality and clinical auditing."""
+    async with AsyncSessionLocal() as db:
+        fb = FeedbackModel(
+            session_id=session_id,
+            user_id=user_id,
+            helpful=1 if helpful else 0,
+            rating=rating,
+            comments=comments,
+        )
+        db.add(fb)
+        await db.commit()
+
+
+async def delete_user_clinical_data(user_id: int) -> int:
+    """Permanently purges all triage records and saved history for a user (GDPR/Medical Privacy)."""
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(PatientSessionModel).where(PatientSessionModel.user_id == user_id)
+        )
+        rows = result.scalars().all()
+        count = len(rows)
+        for r in rows:
+            if r.session_id in _MEMORY_SESSION_CACHE:
+                del _MEMORY_SESSION_CACHE[r.session_id]
+            if r.session_id in _MEMORY_HISTORY_CACHE:
+                del _MEMORY_HISTORY_CACHE[r.session_id]
+            await db.delete(r)
+        await db.commit()
+        return count
