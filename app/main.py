@@ -91,7 +91,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -278,12 +278,12 @@ async def analyze_multimodal_upload(
             user_id=user_id,
         )
     except IntakeDegradationError as err:
-        logger.warning("Image intake degraded, providing graceful clinical fallback: %s", err)
+        logger.warning("Image intake degraded, providing graceful clinical clarification request: %s", err)
         from app.schemas.clinical_schemas import RuleEngineEvaluation, TriageSeverity
         return TriageOrchestratorResult(
             session_id=session_id,
             status="needs_input",
-            severity=TriageSeverity.MODERATE_CAUTION,
+            severity=TriageSeverity.NEEDS_CLARIFICATION,
             caregiver_response_ar=(
                 "**تم استلام صورة علبة الدواء بنجاح.**\n"
                 "--------------------------------------------------\n"
@@ -296,15 +296,19 @@ async def analyze_multimodal_upload(
             pdf_report_path_ar=None,
             intake_snapshot=ClinicalIntakeSchema(raw_transcript_or_notes="[صورة علبة دواء مرفقة]"),
             rule_evaluation=RuleEngineEvaluation(
-                overall_severity=TriageSeverity.MODERATE_CAUTION,
-                halt_for_clarification=False,
+                overall_severity=TriageSeverity.NEEDS_CLARIFICATION,
+                halt_for_clarification=True,
                 clarification_prompt_ar="ما هو اسم الدواء المكتوب على العلبة؟",
                 triggered_alerts=[],
                 normalized_medications=[],
                 urgent_labs_consolidated=[],
             ),
             grounded_evidence=None,
-            degradation=None,
+            degradation=ComponentDegradation(
+                component=err.component,
+                reason=err.reason,
+                user_message_ar=err.user_message_ar,
+            ),
         )
 
 

@@ -2462,6 +2462,35 @@
       border-color: rgba(255, 255, 255, 0.22);
     }
 
+    .hero-quick-actions-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Directional icons mirroring in RTL */
+    [dir="rtl"] .cta-arrow-icon {
+      transform: scaleX(-1);
+    }
+    [dir="ltr"] .cta-arrow-icon {
+      transform: none;
+    }
+
+    .simulation-banner-card {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 10px;
+      padding: 9px 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 12px;
+      color: #fef3c7;
+      margin: 8px 0;
+      line-height: 1.55;
+    }
+
     /* Secondary Quick Simulation Chips */
     .secondary-chips-container {
       margin-top: 14px;
@@ -2822,113 +2851,59 @@
           <button type="button" class="primary-hero-cta" onclick="startSafetyCheck()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
             <span data-i18n="hero_primary_cta">بدء فحص السلامة الدوائية والاستشارة</span>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <svg class="cta-arrow-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
           </button>
-          <button type="button" class="hero-secondary-cta" onclick="document.getElementById('imageUploadInput').click()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-            <span data-i18n="hero_secondary_cta">فحص علبة أو شريط دواء</span>
-          </button>
+          
+          <div class="hero-quick-actions-row">
+            <button type="button" class="hero-secondary-cta" onclick="document.getElementById('imageUploadInput').click()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              <span data-i18n="hero_secondary_cta">فحص صورة دواء</span>
+            </button>
+            <button type="button" class="hero-secondary-cta" onclick="toggleVoiceRecording()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line></svg>
+              <span data-i18n="hero_voice_cta">تسجيل صوتي</span>
+            </button>
+          </div>
         </div>
 
-        <!-- Secondary Simulation Quick Chips -->
+        <!-- Curated Guided Simulation Quick Chips -->
         <div class="secondary-chips-container">
           <div class="chips-label">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-            <span data-i18n="scenarios_label">نماذج استرشادية سريعة:</span>
+            <span data-i18n="scenarios_label">نماذج محاكاة استرشادية (Simulations):</span>
           </div>
           <div class="simulation-chips-row">
             <button type="button" class="scenario-chip" onclick="triggerScenario('cold_flu')">
-              <span>دور البرد ومسكنات الجسم</span>
+              <span data-i18n="chip_cold_flu">دور البرد ومسكنات الجسم</span>
             </button>
             <button type="button" class="scenario-chip" onclick="triggerScenario('silent_aki')">
-              <span>كتافلام 60 يوم (AKI)</span>
+              <span data-i18n="chip_silent_aki">كتافلام 60 يوم (AKI)</span>
             </button>
             <button type="button" class="scenario-chip" onclick="triggerScenario('triple_whammy')">
-              <span>ضغط + مدر بول + مسكن</span>
+              <span data-i18n="chip_triple_whammy">ضغط + مدر بول + مسكن</span>
             </button>
             <button type="button" class="scenario-chip" onclick="triggerScenario('peptic_ulcer')">
-              <span>قرحة المعدة والبروفين</span>
+              <span data-i18n="chip_peptic_ulcer">قرحة المعدة والبروفين</span>
             </button>
             <button type="button" class="scenario-chip" onclick="triggerScenario('anticoagulant_bleeding')">
-              <span>السيولة وظهور كدمات</span>
+              <span data-i18n="chip_bleeding">السيولة وظهور كدمات</span>
             </button>
             <button type="button" class="scenario-chip" onclick="triggerScenario('rule2_guardrail')">
-              <span>حارس المدة المفقودة</span>
+              <span data-i18n="chip_missing_duration">حارس المدة المفقودة</span>
             </button>
           </div>
         </div>
 
-        <!-- Clinical Evidence & Scope Disclaimer (Milestone 2 & 5) -->
+        <!-- Clinical Evidence & Scope Disclaimer (Priority 2 & 5) -->
         <div class="clinical-trust-box">
           <div data-i18n="clinical_trust_notice">
             <strong>طبيعة الخدمة الإكلينيكية:</strong> أداة دعم قرار وفرز إكلينيكي استباقي لمساعدة المرضى والمرافقين والأطباء، <strong>ولا تغني عن الفحص الطبي المباشر أو استشارة الطبيب المعالج</strong>. تقارير الفرز هي ملخص لتوثيق تاريخ الأدوية وأولويات الطوارئ وليست تشخيصاً نهائياً أو وصفة علاجية.
           </div>
           <div class="clinical-trust-links">
-            <span>• المرجعية: أدلة هيئة الدواء المصرية (EDA) • إرشادات KDIGO</span>
-            <span>• آخر مراجعة إكلينيكية: أكتوبر 2026</span>
-            <button type="button" class="clinical-trust-link" onclick="openClinicalSourcesModal()">المصادر والحدود الطبية</button>
-            <button type="button" class="clinical-trust-link" onclick="openPrivacyModal()">سياسة الخصوصية وحماية البيانات</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2x2 Bento Grid Actions -->
-      <div>
-        <div class="bento-grid">
-          <div class="bento-card" onclick="document.getElementById('imageUploadInput').click()">
-            <div class="bento-icon-box">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <rect x="3" y="3" width="18" height="18" rx="3"></rect>
-                <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                <polyline points="21 15 16 10 5 21"></polyline>
-              </svg>
-            </div>
-            <div>
-              <div class="bento-title" data-i18n="bento_camera_title">تصوير علبة أو شريط دواء</div>
-              <div class="bento-caption" data-i18n="bento_camera_desc">رصد الاسم والجرعة بالذكاء البصري</div>
-            </div>
-          </div>
-
-          <div class="bento-card" onclick="toggleVoiceRecording()">
-            <div class="bento-icon-box">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                <line x1="12" y1="19" x2="12" y2="23"></line>
-                <line x1="8" y1="23" x2="16" y2="23"></line>
-              </svg>
-            </div>
-            <div>
-              <div class="bento-title" id="bentoVoiceTitle" data-i18n="bento_voice_title">تسجيل صوتي باللهجة المصرية</div>
-              <div class="bento-caption" data-i18n="bento_voice_desc">فهم إكلينيكي دقيق واستخلاص للأعراض</div>
-            </div>
-          </div>
-
-          <div class="bento-card" onclick="triggerScenario('silent_aki')">
-            <div class="bento-icon-box">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-              </svg>
-            </div>
-            <div>
-              <div class="bento-title" data-i18n="bento_safe_title">استشارة أمان دوائي وقائي</div>
-              <div class="bento-caption" data-i18n="bento_safe_desc">كشف مبكر لقصور الكلى وتفاعلات الأدوية</div>
-            </div>
-          </div>
-
-          <div class="bento-card" onclick="downloadPdf('ar')">
-            <div class="bento-icon-box">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-              </svg>
-            </div>
-            <div>
-              <div class="bento-title" data-i18n="bento_report_title">إصدار تقرير طوارئ طبي PDF</div>
-              <div class="bento-caption" data-i18n="bento_report_desc">نسخة عربية ونسخة إنجليزية</div>
-            </div>
+            <span data-i18n="clinical_sources_ref">• المرجعية: أدلة هيئة الدواء المصرية (EDA) • إرشادات KDIGO</span>
+            <span data-i18n="clinical_review_date">• تاريخ مراجعة القواعد: أكتوبر 2026</span>
+            <button type="button" class="clinical-trust-link" onclick="openClinicalSourcesModal()" data-i18n="link_clinical_sources">المصادر والحدود الطبية</button>
+            <button type="button" class="clinical-trust-link" onclick="openPrivacyModal()" data-i18n="link_privacy_policy">سياسة الخصوصية وحماية البيانات</button>
           </div>
         </div>
       </div>
@@ -2959,8 +2934,8 @@
                 </svg>
               </div>
               <div class="voice-header-info">
-                <div class="voice-header-title">Voice Triage Intake</div>
-                <div class="voice-header-sub">Egyptian Clinical NLU • 01:00</div>
+                <div class="voice-header-title" data-i18n="voice_card_title">Voice Triage Intake</div>
+                <div class="voice-header-sub" data-i18n="voice_card_sub">Egyptian Clinical NLU • 01:00</div>
               </div>
             </div>
             <div class="waveform-white-pill" onclick="triggerScenario('silent_aki')" title="تشغيل نموذج صوتي">
@@ -2977,11 +2952,11 @@
               </div>
             </div>
           </div>
-          <div class="msg-meta">نظام صحتك AI • جاهز لاستقبال البيانات</div>
+          <div class="msg-meta" data-i18n="system_ready_meta">نظام صحتك AI • جاهز لاستقبال البيانات</div>
         </div>
 
         <div class="msg-row assistant">
-          <div class="msg-bubble">
+          <div class="msg-bubble" data-i18n="initial_chat_greeting">
             أهلاً بك في <strong>صحتك AI</strong>.<br />
             يمكنك إرسال <strong>صورة علبة أو شريط الدواء</strong>، أو <strong>تسجيل صوتي</strong>، أو كتابة الأدوية والأعراض التي يشعر بها المريض، ليقوم النظام بمراجعة الأمان الدوائي وإصدار تقرير الطوارئ للمستشفى باللغتين العربية والإنجليزية.
           </div>
@@ -3001,7 +2976,7 @@
         </div>
         <a href="tel:123" class="emergency-call-btn" title="اتصال فوري بطوارئ الإسعاف 123">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-          <span>123 إسعاف</span>
+          <span data-i18n="emergency_call_btn">123 إسعاف (طوارئ)</span>
         </a>
       </div>
 
@@ -3045,7 +3020,7 @@
         <div class="radar-header">
           <div>
             <div class="radar-title" data-i18n="radar_title">لوحة التقييم الإكلينيكي وتقارير المستشفى</div>
-            <div class="radar-sub">Deterministic Rules + KDIGO / NICE Guidelines</div>
+            <div class="radar-sub" data-i18n="radar_sub">القواعد الحتمية + إرشادات KDIGO و NICE</div>
           </div>
           <span class="severity-tag" id="severityBadge">READY</span>
         </div>
@@ -3053,20 +3028,20 @@
         <!-- Normalized Medications -->
         <div class="radar-card">
           <div class="radar-card-label">
-            <span>الأدوية المرصودة (Normalized Drugs)</span>
+            <span data-i18n="radar_meds_label">الأدوية المرصودة (Normalized Drugs)</span>
             <span id="medCountBadge">0</span>
           </div>
           <div class="med-tags-wrap" id="detectedMedsContainer">
-            <span style="font-size: 12px; color: var(--text-muted);">لم يتم رصد أدوية بعد.</span>
+            <span style="font-size: 12px; color: var(--text-muted);" data-i18n="radar_no_meds">لم يتم رصد أدوية بعد.</span>
           </div>
         </div>
 
         <!-- Deterministic Guardrails -->
         <div class="radar-card">
           <div class="radar-card-label">
-            <span>القواعد الطبية الحتمية المفعلة (Guardrails)</span>
+            <span data-i18n="radar_rules_label">القواعد الطبية الحتمية المفعلة (Guardrails)</span>
           </div>
-          <div id="triggeredRulesContainer" style="font-size: 12.5px; line-height: 1.6; color: #cbd5e1;">
+          <div id="triggeredRulesContainer" style="font-size: 12.5px; line-height: 1.6; color: #cbd5e1;" data-i18n="radar_rules_desc">
             المحرك يراقب مدة استخدام المسكنات (Rule 2) ومخاطر القصور الكلوي الحاد (Rule 1) وتفاعلات (Triple Whammy).
           </div>
         </div>
@@ -3074,7 +3049,7 @@
         <!-- ER Physician Summary -->
         <div class="radar-card">
           <div class="radar-card-label">
-            <span>ملخص طبيب الطوارئ (ER Physician Summary)</span>
+            <span data-i18n="radar_er_label">ملخص طبيب الطوارئ (ER Physician Summary)</span>
           </div>
           <div class="er-english-box" id="erPhysicianBox">
             <div><strong>Demographics:</strong> Awaiting patient intake...</div>
@@ -3086,10 +3061,10 @@
         <!-- Mandatory Labs -->
         <div class="radar-card">
           <div class="radar-card-label">
-            <span>التحاليل المعملية العاجلة المطلوبة</span>
+            <span data-i18n="radar_labs_label">التحاليل المعملية العاجلة المطلوبة</span>
           </div>
           <ul class="lab-items" id="urgentLabsList">
-            <li style="color: var(--text-muted);">تظهر التحاليل المطلوبة تلقائياً فور رصد أي خطر دوائي.</li>
+            <li style="color: var(--text-muted);" data-i18n="radar_no_labs">تظهر التحاليل المطلوبة تلقائياً فور رصد أي خطر دوائي.</li>
           </ul>
         </div>
       </div>
@@ -3542,38 +3517,14 @@
       <div class="modal-header">
         <div style="display:flex;align-items:center;gap:10px;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-          <div class="modal-title" style="font-size:15.5px;">الخصوصية وحماية البيانات الطبية (Data Protection)</div>
+          <div class="modal-title" id="privacyModalTitle" style="font-size:15.5px;">الخصوصية وحماية البيانات الطبية (Data Protection)</div>
         </div>
         <button class="modal-close-btn" onclick="closePrivacyModal()" title="إغلاق">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
 
-      <div class="modal-body" style="padding: 22px 24px; max-height: 72vh; overflow-y: auto;">
-        <div style="display:flex;flex-direction:column;gap:16px;font-size:12.5px;line-height:1.65;color:#cbd5e1;">
-          <div style="background:rgba(2,6,23,0.5);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;">
-            <div style="font-weight:700;color:#38bdf8;margin-bottom:4px;font-size:13px;">1. ما هي البيانات التي نجمعها؟</div>
-            <p style="margin:0;">نجمع فقط البيانات التي تُدخلها طوعاً لإتمام فحص الأمان الدوائي: أسماء الأدوية، والجرعات، والمدة الزمنية لاستخدامها، والأعراض المذكورة، بالإضافة إلى الملفات الصوتية أو صور علب الأدوية المرفقة.</p>
-          </div>
-
-          <div style="background:rgba(2,6,23,0.5);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;">
-            <div style="font-weight:700;color:#38bdf8;margin-bottom:4px;font-size:13px;">2. أين وكيف تُخزن بياناتك؟</div>
-            <p style="margin:0;">تُخزن جلساتك بقواعد بيانات سحابية مشفرة بتشفير TLS/SSL 1.3 مع حماية تامة للهوية الرقمية عبر رموز JWT مشفرة. لا نتيح الوصول إلى بياناتك إلا لحسابك الشخصي.</p>
-          </div>
-
-          <div style="background:rgba(2,6,23,0.5);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;">
-            <div style="font-weight:700;color:#38bdf8;margin-bottom:4px;font-size:13px;">3. من يمكنه الاطلاع على معلوماتك؟</div>
-            <p style="margin:0;">أنت فقط، والأطباء أو أطقم الطوارئ الذين تختار أنت شخصياً تسليمهم تقرير الطوارئ الطبي المطبوع أو المحمل (PDF). <strong>لا نبيع ولا نشارك أي بيانات صحية مع شركات الأدوية أو المنصات الإعلانية على الإطلاق.</strong></p>
-          </div>
-
-          <div style="background:rgba(2,6,23,0.5);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;">
-            <div style="font-weight:700;color:#38bdf8;margin-bottom:4px;font-size:13px;">4. حق النسيان وحذف البيانات نهائياً</div>
-            <p style="margin:0 0 8px 0;">يحق لك في أي لحظة حذف جميع جلساتك وسجلك الإكلينيكي بالكامل من الخوادم بضغطة زر واحدة من خلال صفحة «حسابي».</p>
-            <button type="button" class="danger-purge-btn" onclick="closePrivacyModal(); purgeMyData();" style="margin:0;">
-              <span>طلب حذف جميع بياناتي الآن</span>
-            </button>
-          </div>
-        </div>
+      <div class="modal-body" id="privacyModalBody" style="padding: 22px 24px; max-height: 72vh; overflow-y: auto;">
       </div>
     </div>
   </div>
@@ -3586,34 +3537,14 @@
       <div class="modal-header">
         <div style="display:flex;align-items:center;gap:10px;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-          <div class="modal-title" style="font-size:15.5px;">المرجعية الإكلينيكية والحدود الطبية المعتمدة</div>
+          <div class="modal-title" id="clinicalSourcesModalTitle" style="font-size:15.5px;">المرجعية الإكلينيكية والحدود الطبية المعتمدة</div>
         </div>
         <button class="modal-close-btn" onclick="closeClinicalSourcesModal()" title="إغلاق">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
 
-      <div class="modal-body" style="padding: 22px 24px; max-height: 72vh; overflow-y: auto;">
-        <div style="display:flex;flex-direction:column;gap:16px;font-size:12.5px;line-height:1.65;color:#cbd5e1;">
-          <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:14px;color:#fecaca;">
-            <div style="font-weight:700;color:#f87171;margin-bottom:4px;font-size:13px;">توضيح هام حول نطاق وحدود الخدمة:</div>
-            <p style="margin:0;">منظومة «صحتك AI» هي أداة مساعدة لدعم القرار واليقظة الدوائية المبكرة (Clinical Decision Support Tool)، <strong>ولا تغني إطلاقاً عن الفحص الطبي المباشر أو التقييم السريري للطبيب المعالج</strong>. لا تشكل مخرجات المنظومة تشخيصاً نهائياً أو وصفة طبية بديلة.</p>
-          </div>
-
-          <div style="background:rgba(2,6,23,0.5);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;">
-            <div style="font-weight:700;color:#34d399;margin-bottom:6px;font-size:13px;">المصادر الإكلينيكية والقواعد المعتمدة:</div>
-            <ul style="margin:0;padding-right:20px;display:flex;flex-direction:column;gap:6px;">
-              <li><strong>هيئة الدواء المصرية (EDA):</strong> أدلة السلامة الدوائية وبطاقات التحذير للأدوية الشائعة بالسوق المصري.</li>
-              <li><strong>إرشادات KDIGO الدولية:</strong> معايير رصد ومتابعة القصور الكلوي الحاد الناجم عن الاستخدام المزمن لمضادات الالتهاب غير الستيرويدية (NSAIDs).</li>
-              <li><strong>تحذيرات اليقظة الدوائية لـ FDA:</strong> مخاطر التفاعل الثلاثي (Triple Whammy) بين مضادات الالتهاب، وأدوية الضغط (ACEi/ARBs)، ومدرات البول.</li>
-            </ul>
-          </div>
-
-          <div style="background:rgba(2,6,23,0.5);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;">
-            <div style="font-weight:700;color:#cbd5e1;margin-bottom:4px;font-size:13px;">تاريخ المراجعة الإكلينيكية:</div>
-            <p style="margin:0;">تمت آخر مراجعة وتدقيق لقواعد الفحص والسلامة الدوائية في: <strong>أكتوبر 2026</strong> بواسطة لجنة مراجعة الأمان الدوائي والفرز التوليدي.</p>
-          </div>
-        </div>
+      <div class="modal-body" id="clinicalSourcesModalBody" style="padding: 22px 24px; max-height: 72vh; overflow-y: auto;">
       </div>
     </div>
   </div>
@@ -3622,19 +3553,19 @@
   <nav class="mobile-bottom-tabs">
     <button class="mobile-tab-btn active" id="mTabTriage" onclick="navigateToPage('triage')">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
-      <span>الفرز الطبي</span>
+      <span data-i18n="m_tab_triage">الفرز الطبي</span>
     </button>
     <button class="mobile-tab-btn" id="mTabRecords" onclick="navigateToPage('records')">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-      <span>السجل الطبي</span>
+      <span data-i18n="m_tab_records">السجل الطبي</span>
     </button>
     <button class="mobile-tab-btn" id="mTabDrugs" onclick="navigateToPage('drugs')">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-      <span>دليل الأدوية</span>
+      <span data-i18n="m_tab_drugs">دليل الأدوية</span>
     </button>
     <button class="mobile-tab-btn" id="mTabProfile" onclick="navigateToPage('profile')">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-      <span>حسابي</span>
+      <span data-i18n="m_tab_profile">حسابي</span>
     </button>
   </nav>
 
@@ -3661,31 +3592,48 @@
         hero_title: "أهلاً بك في صحتك AI<br />كيف نساعدك اليوم؟",
         hero_subtitle: "حماية استباقية وتوثيق للأمان الدوائي وتضارب العلاجات المزمنة، مع إعداد تقارير فرز إكلينيكي للأطباء وأقسام الطوارئ (عربي وإنجليزي).",
         hero_primary_cta: "بدء فحص السلامة الدوائية والاستشارة",
-        hero_secondary_cta: "فحص علبة أو شريط دواء",
+        hero_secondary_cta: "فحص صورة دواء",
+        hero_voice_cta: "تسجيل صوتي",
         emergency_banner_title: "تنبيه الطوارئ الحرجة الفورية",
         emergency_banner_text: "إذا كنت أنت أو المريض تعانون من: <strong>ألم أو ضغط حاد بالصدر، صعوبة تنفس شديدة، فقدان للوعي، ضعف مفاجئ بنصف الجسم، أو قيء دموي</strong> — توقف فوراً واطلب الإسعاف (<strong>123</strong>) أو توجه لأقرب طوارئ مستشفى فوراً.",
+        emergency_call_btn: "123 إسعاف (طوارئ)",
         clinical_trust_notice: "أداة دعم قرار وفرز إكلينيكي استباقي لمساعدة المرضى والمرافقين والأطباء، <strong>ولا تغني عن الفحص الطبي المباشر أو استشارة الطبيب المعالج</strong>. تقارير الفرز هي ملخص لتوثيق تاريخ الأدوية وأولويات الطوارئ وليست تشخيصاً نهائياً أو وصفة علاجية.",
-        scenarios_label: "نماذج استرشادية سريعة:",
-        scenario_cold_flu: "دور البرد والكحة الناشفة وتكسير الجسم (نصائح الأمان الدوائي)",
-        scenario_2: "سيناريو كتافلام 60 يوم مع ألم الذراع والإرهاق (Silent AKI)",
-        scenario_3: "سيناريو تفاعل أدوية الضغط ومدرات البول مع المسكنات (Triple Whammy)",
-        scenario_peptic_ulcer: "مريض قرحة المعدة والارتجاع مع مسكنات البروفين (GI Bleed Risk)",
-        scenario_anticoagulant: "مرضى القلب والسيولة (بلافيكس/ماريفان) مع المسكنات وظهور الكدمات",
-        scenario_1: "اختبار حارس المدة المفقودة (Rule 2 Guardrail)",
-        bento_voice_title: "تسجيل صوتي باللهجة المصرية",
-        bento_voice_desc: "فهم إكلينيكي دقيق واستخلاص للأعراض",
-        bento_camera_title: "تصوير علبة أو شريط دواء",
-        bento_camera_desc: "رصد الاسم والجرعة بالذكاء البصري",
-        bento_report_title: "إصدار تقرير طوارئ طبي PDF",
-        bento_report_desc: "نسخة عربية ونسخة إنجليزية",
-        bento_safe_title: "استشارة أمان دوائي وقائي",
-        bento_safe_desc: "كشف مبكر لقصور الكلى وتفاعلات الأدوية",
+        clinical_sources_ref: "• المرجعية: أدلة هيئة الدواء المصرية (EDA) • إرشادات KDIGO",
+        clinical_review_date: "• تاريخ مراجعة القواعد: أكتوبر 2026",
+        link_clinical_sources: "المصادر والحدود الطبية",
+        link_privacy_policy: "سياسة الخصوصية وحماية البيانات",
+        scenarios_label: "نماذج محاكاة استرشادية (Simulations):",
+        chip_cold_flu: "دور البرد والمسكنات",
+        chip_silent_aki: "كتافلام 60 يوم (AKI)",
+        chip_triple_whammy: "ضغط + مدر بول + مسكن",
+        chip_peptic_ulcer: "قرحة المعدة والبروفين",
+        chip_bleeding: "السيولة وظهور كدمات",
+        chip_missing_duration: "حارس المدة المفقودة",
         chat_top_title: "محادثة الفرز الطبي واليقظة الدوائية",
         chat_close_btn: "✕ إغلاق وبدء محادثة جديدة",
         chat_placeholder: "اكتب الأعراض أو اسم الدواء أو المدة الزمنية...",
+        initial_chat_greeting: "أهلاً بك في <strong>صحتك AI</strong>.<br />يمكنك إرسال <strong>صورة علبة أو شريط الدواء</strong>، أو <strong>تسجيل صوتي</strong>، أو كتابة الأدوية والأعراض التي يشعر بها المريض، ليقوم النظام بمراجعة الأمان الدوائي وإصدار تقرير الطوارئ للمستشفى باللغتين العربية والإنجليزية.",
+        voice_card_title: "استقبال الفرز الصوتي",
+        voice_card_sub: "فهم إكلينيكي للهجة المصرية • 01:00",
+        system_ready_meta: "نظام صحتك AI • جاهز لاستقبال البيانات",
         radar_title: "لوحة التقييم الإكلينيكي وتقارير المستشفى",
+        radar_sub: "القواعد الحتمية + إرشادات KDIGO و NICE",
+        radar_meds_label: "الأدوية المرصودة (Normalized Drugs)",
+        radar_no_meds: "لم يتم رصد أدوية بعد.",
+        radar_rules_label: "القواعد الطبية الحتمية المفعلة (Guardrails)",
+        radar_rules_desc: "المحرك يراقب مدة استخدام المسكنات (Rule 2) ومخاطر القصور الكلوي الحاد (Rule 1) وتفاعلات (Triple Whammy).",
+        radar_er_label: "ملخص طبيب الطوارئ (ER Physician Summary)",
+        radar_labs_label: "التحاليل المعملية العاجلة المطلوبة",
+        radar_no_labs: "تظهر التحاليل المطلوبة تلقائياً فور رصد أي خطر دوائي.",
         download_ar_pdf: "تحميل التقرير بالعربية (للمستشفى) PDF",
         download_en_pdf: "Download English ER Summary PDF",
+        m_tab_chat: "المحادثة",
+        m_tab_home: "الرئيسية",
+        m_tab_report: "تقرير الطوارئ",
+        m_tab_triage: "الفرز الطبي",
+        m_tab_records: "السجل الطبي",
+        m_tab_drugs: "دليل الأدوية",
+        m_tab_profile: "حسابي",
         records_title: "سجل الفحوصات والتقارير الطبية",
         records_subtitle: "أرشيف الحالات الإكلينيكية المسجلة مع إمكانية إعادة تحميل تقارير الطوارئ والفرز (PDF).",
         records_refresh: "تحديث السجل",
@@ -3696,7 +3644,7 @@
         drugs_search_placeholder: "ابحث باسم الدواء التجاري أو المادة الفعالة (مثال: كتافلام، بروفين، كيتوفان، فانتومور)...",
         profile_title: "الملف الصحي الشخصي وحسابي",
         profile_subtitle: "إدارة بيانات الحساب وحفظ الأمراض المزمنة لتوجيه الفرز الطبي بدقة متناهية.",
-        db_connected_badge: "قاعدة البيانات متصلة (SQLite Async & JWT)",
+        db_connected_badge: "قاعدة البيانات السحابية متصلة ومحمية (Neon PostgreSQL)",
         account_details_title: "بيانات الحساب والتوثيق",
         chronic_conditions_title: "الأمراض المزمنة المحفوظة للمريض",
         emergency_contacts_title: "أرقام الطوارئ واليقظة الدوائية الرسمية في مصر"
@@ -3713,32 +3661,49 @@
         kicker: "CLINICAL DECISION-SUPPORT & PHARMACOVIGILANCE",
         hero_title: "Welcome to Sehtak AI<br />How can we safeguard you today?",
         hero_subtitle: "Proactive medication safety screening and clinical decision-support to assist patients, caregivers, and clinicians with ER-grade summaries (Arabic & English).",
-        hero_primary_cta: "Start Clinical Safety Check Now",
-        hero_secondary_cta: "Scan Medication Box",
+        hero_primary_cta: "Start Medication Safety Check",
+        hero_secondary_cta: "Scan Drug Box",
+        hero_voice_cta: "Voice Note",
         emergency_banner_title: "Immediate Medical Emergency Alert",
         emergency_banner_text: "If experiencing: <strong>severe chest pain or pressure, acute shortness of breath, loss of consciousness, sudden one-sided facial or body weakness, or vomiting blood</strong> — stop immediately and call <strong>123</strong> or go to the nearest emergency department.",
-        clinical_trust_notice: "Clinical decision-support & pharmacovigilance screening tool. <strong>It does not replace a clinician's professional judgment, physical examination, or formal diagnosis.</strong> Triage summaries are intended for clinical history tracking, not prescriptions.",
-        scenarios_label: "Clinical Instant Simulations:",
-        scenario_cold_flu: "Acute Cold, Dry Cough & Body Aches (Medication Safety)",
-        scenario_2: "Chronic Cataflam 60 Days with Arm Pain & Fatigue (Silent AKI)",
-        scenario_3: "NSAID + ACE-i + Diuretic Interaction (Triple Whammy)",
-        scenario_peptic_ulcer: "Peptic Ulcer Patient Taking Brufen (GI Bleeding Risk)",
-        scenario_anticoagulant: "Anticoagulants (Plavix/Warfarin) with NSAIDs (Bleeding Alert)",
-        scenario_1: "Missing Duration Guardrail (Rule 2 Evaluation)",
-        bento_voice_title: "Egyptian Voice Intake",
-        bento_voice_desc: "Precise clinical understanding and symptom extraction",
-        bento_camera_title: "Medication Box / Strip Photo",
-        bento_camera_desc: "Visual detection of brand name, ingredient & dosage",
-        bento_report_title: "Generate Emergency Triage PDF",
-        bento_report_desc: "Arabic hospital report & English ER summary",
-        bento_safe_title: "Preventive Medication Safety",
-        bento_safe_desc: "Early detection of renal failure & contraindications",
+        emergency_call_btn: "Call 123 (EMS)",
+        clinical_trust_notice: "Clinical decision-support & pharmacovigilance screening tool. <strong>Does not replace an attending clinician's direct examination or formal diagnosis.</strong> Triage summaries are intended for clinical history tracking, not prescriptions.",
+        clinical_sources_ref: "• Sources: Egyptian Drug Authority (EDA) • KDIGO Guidelines",
+        clinical_review_date: "• Rules Review Date: October 2026",
+        link_clinical_sources: "Clinical Reference & Limits",
+        link_privacy_policy: "Privacy & Data Protection",
+        scenarios_label: "Clinical Simulation Demos:",
+        chip_cold_flu: "Cold, Cough & Analgesics",
+        chip_silent_aki: "Cataflam 60 Days (Silent AKI)",
+        chip_triple_whammy: "Triple Whammy Interaction",
+        chip_peptic_ulcer: "Peptic Ulcer & Brufen",
+        chip_bleeding: "Anticoagulants & Bleeding",
+        chip_missing_duration: "Missing Duration Guardrail",
         chat_top_title: "Clinical Triage & Pharmacovigilance Chat",
         chat_close_btn: "✕ Clear & Start New Session",
         chat_placeholder: "Describe symptoms, medications, or duration...",
+        initial_chat_greeting: "Welcome to <strong>Sehtak AI</strong>.<br />You can send a <strong>photo of a medication box</strong>, record a <strong>voice note</strong>, or type the patient's symptoms and medications. The system evaluates drug safety and generates bilingual ER triage summaries.",
+        voice_card_title: "Voice Triage Intake",
+        voice_card_sub: "Egyptian Clinical NLU • 01:00",
+        system_ready_meta: "Sehtak AI System • Ready for Clinical Intake",
         radar_title: "Clinical Triage & Hospital Workup Panel",
+        radar_sub: "Deterministic Rules + KDIGO / NICE Guidelines",
+        radar_meds_label: "Detected Medications (Normalized)",
+        radar_no_meds: "No medications detected yet.",
+        radar_rules_label: "Active Deterministic Safety Rules",
+        radar_rules_desc: "Engine monitors duration guardrails (Rule 2), nephrotoxicity (Rule 1), and NSAID/ACEi/Diuretic interactions.",
+        radar_er_label: "ER Physician Clinical Summary",
+        radar_labs_label: "Urgent Laboratory Workup (STAT)",
+        radar_no_labs: "Mandatory lab workup appears automatically when medication risks are triggered.",
         download_ar_pdf: "Download Arabic Hospital Report PDF",
         download_en_pdf: "Download English ER Summary PDF",
+        m_tab_chat: "Triage Chat",
+        m_tab_home: "Overview",
+        m_tab_report: "ER Report",
+        m_tab_triage: "Clinical Triage",
+        m_tab_records: "Patient Records",
+        m_tab_drugs: "Drug Compendium",
+        m_tab_profile: "Account",
         records_title: "Patient Clinical Records & Reports",
         records_subtitle: "Archived clinical triage sessions with instant bilingual PDF downloads.",
         records_refresh: "Refresh Archive",
@@ -3749,7 +3714,7 @@
         drugs_search_placeholder: "Search by brand name or active ingredient (e.g. Cataflam, Brufen, Ketofan)...",
         profile_title: "Personal Health Profile & Account",
         profile_subtitle: "Manage account settings and persist chronic health history for personalized safety checks.",
-        db_connected_badge: "Database Connected (SQLite Async & JWT)",
+        db_connected_badge: "Cloud Database Connected & Secured (Neon PostgreSQL)",
         account_details_title: "Account Details & Authentication",
         chronic_conditions_title: "Persisted Chronic Conditions",
         emergency_contacts_title: "Official Egyptian Emergency & Pharmacovigilance Hotlines"
@@ -3788,6 +3753,10 @@
           }
         }
       });
+
+      if (typeof renderPrivacyModalContent === "function") renderPrivacyModalContent();
+      if (typeof renderClinicalSourcesModalContent === "function") renderClinicalSourcesModalContent();
+      if (typeof updateTrialUI === "function") updateTrialUI();
     }
 
     // Apply language on initial boot
@@ -4102,7 +4071,152 @@
       }
     }
 
+    function renderPrivacyModalContent() {
+      const container = document.getElementById("privacyModalBody");
+      const title = document.getElementById("privacyModalTitle");
+      if (!container) return;
+      const isEn = CURRENT_LANG === 'en';
+      if (title) {
+        title.textContent = isEn ? "Data Privacy & Medical Information Protection" : "الخصوصية وحماية البيانات الطبية (Data Protection)";
+      }
+      if (isEn) {
+        container.innerHTML = `
+          <div style="display:flex;flex-direction:column;gap:16px;line-height:1.65;font-size:13.5px;color:var(--text-secondary);">
+            <div style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.25);border-radius:10px;padding:12px 14px;color:#bae6fd;">
+              <strong style="color:#ffffff;">Strict Medical Data Privacy & User Sovereignty</strong><br/>
+              Sehtak AI is engineered with medical privacy and GDPR principles at its core. We do not sell your personal health records, nor do we share them with commercial brokers or ad networks.
+            </div>
+
+            <div>
+              <h4 style="color:#ffffff;margin:0 0 6px 0;font-size:14px;">1. Information We Process</h4>
+              <p style="margin:0;">• Symptoms, dosage history, and clinical questions entered in triage chat.<br/>
+              • Chronic disease flags and ongoing medications in your health profile.<br/>
+              • Uploaded medication packaging images and voice notes (processed for drug extraction and transcription, not stored permanently).</p>
+            </div>
+
+            <div>
+              <h4 style="color:#ffffff;margin:0 0 6px 0;font-size:14px;">2. Storage, Encryption & Security Architecture</h4>
+              <p style="margin:0;">• <strong>In-Transit Security:</strong> Enforced via TLS 1.3 / HTTPS encryption on all connections.<br/>
+              • <strong>Database Storage:</strong> Managed PostgreSQL with strict role-based access controls.<br/>
+              • <strong>Authentication:</strong> Passwords hashed with industry-standard Argon2; sessions validated via cryptographically signed JWT tokens.</p>
+            </div>
+
+            <div>
+              <h4 style="color:#ffffff;margin:0 0 6px 0;font-size:14px;">3. AI Model Providers</h4>
+              <p style="margin:0;">Triage text is processed via Google Gemini API enterprise endpoints solely to evaluate medication interactions against clinical safety rules. Health data is never used to train public foundation models.</p>
+            </div>
+
+            <div>
+              <h4 style="color:#ffffff;margin:0 0 6px 0;font-size:14px;">4. Right to Erasure (Permanent Data Deletion)</h4>
+              <p style="margin:0;">You retain full sovereignty over your clinical records. You can permanently wipe your entire medical profile, triage history, and account records at any time using the "Purge Clinical Data" button or the <code>DELETE /api/v1/user/data</code> endpoint.</p>
+            </div>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div style="display:flex;flex-direction:column;gap:16px;line-height:1.65;font-size:13.5px;color:var(--text-secondary);">
+            <div style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.25);border-radius:10px;padding:12px 14px;color:#bae6fd;">
+              <strong style="color:#ffffff;">الالتزام الصريح بالشفافية والخصوصية الطبية</strong><br/>
+              تطبيق «صحتك AI» مبني وفق معايير الخصوصية الصارمة للبيانات الطبية (GDPR & Data Sovereignty). نحن لا نبيع بياناتك، ولا نستخدمها للإعلانات أو لأي أغراض تجارية مطلقاً.
+            </div>
+
+            <div>
+              <h4 style="color:#ffffff;margin:0 0 6px 0;font-size:14px;">1. ما هي البيانات التي نقوم بمعالجتها؟</h4>
+              <p style="margin:0;">• الأعراض والشكوى السريرية التي تدخلها في محادثة الفرز.<br/>
+              • أسماء الأدوية والجرعات والتاريخ المرضي المحفوظ في ملفك الشخصي.<br/>
+              • الصور المرفوعة للأدوية أو التسجيلات الصوتية (تُعالج لاستخراج النصوص والأسماء الدوائية فقط ولا تُحفظ للأبد).</p>
+            </div>
+
+            <div>
+              <h4 style="color:#ffffff;margin:0 0 6px 0;font-size:14px;">2. التخزين والتشفير وأمن المعلومات</h4>
+              <p style="margin:0;">• <strong>النقل المشفر (In-Transit):</strong> جميع الاتصالات محمية ببروتوكول TLS 1.3 / HTTPS.<br/>
+              • <strong>قاعدة البيانات:</strong> تخزين آمن في خوادم PostgreSQL المدارة مع قيود وصول صارمة.<br/>
+              • <strong>حماية الحسابات:</strong> كلمات المرور مشفرة بواسطة خوارزمية التجزئة الحديثة Argon2، والتحقق عبر رموز JWT الرقمية الموقعة.</p>
+            </div>
+
+            <div>
+              <h4 style="color:#ffffff;margin:0 0 6px 0;font-size:14px;">3. موفرو الذكاء الاصطناعي ومعالجة النماذج</h4>
+              <p style="margin:0;">يتم تمرير نصوص الاستشارة بأمان إلى واجهة Google Gemini API المتوافقة مع معايير الشركات لاستخراج الأدوية وتقييم السلامة الدوائية وفق نماذج الفرز المحددة، دون الاحتفاظ بالبيانات لتدريب نماذج عامة خارج الجلسة.</p>
+            </div>
+
+            <div>
+              <h4 style="color:#ffffff;margin:0 0 6px 0;font-size:14px;">4. حق النسيان ومحو البيانات الفوري (GDPR Right to Erasure)</h4>
+              <p style="margin:0;">يحق لك في أي لحظة حذف سجلك الطبي بالكامل، وكافة جلسات الفرز المسجلة نهائياً بنقرة زر واحدة عبر خيار «حذف سجلي وبياناتي نهائياً» المتوفر في صفحة الحساب، أو عبر واجهة النظام الرسمية.</p>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function renderClinicalSourcesModalContent() {
+      const container = document.getElementById("clinicalSourcesModalBody");
+      const title = document.getElementById("clinicalSourcesModalTitle");
+      if (!container) return;
+      const isEn = CURRENT_LANG === 'en';
+      if (title) {
+        title.textContent = isEn ? "Clinical Sources & Medical Triage Scope" : "المرجعية الإكلينيكية والحدود الطبية المعتمدة";
+      }
+      if (isEn) {
+        container.innerHTML = `
+          <div style="display:flex;flex-direction:column;gap:16px;line-height:1.65;font-size:13.5px;color:var(--text-secondary);">
+            <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:12px 14px;color:#fca5a5;">
+              <strong style="color:#ffffff;">Clinical Disclaimer & Medical Scope</strong><br/>
+              Sehtak AI is an AI-assisted medication safety and clinical decision-support tool. It is <strong>NOT a diagnostic device, a medical prescription, or a substitute for an attending physician or licensed pharmacist</strong>.
+            </div>
+
+            <div>
+              <h4 style="color:#ffffff;margin:0 0 6px 0;font-size:14px;">Authoritative Clinical Sources (Reviewed October 2026):</h4>
+              <ul style="margin:0;padding-left:18px;">
+                <li style="margin-bottom:6px;"><strong>KDIGO 2024 Guidelines:</strong> Clinical Practice Guideline for the Evaluation & Management of Chronic Kidney Disease (NSAID contraindications & Triple Whammy safety).</li>
+                <li style="margin-bottom:6px;"><strong>Egyptian Drug Authority (EDA) Pharmacovigilance:</strong> Safety circulars regarding OTC NSAID nephrotoxicity, anticoagulant interactions, and unauthorized polypharmacy combinations (e.g., pharmacy cold cocktail shots).</li>
+                <li style="margin-bottom:6px;"><strong>NICE NG148:</strong> Acute kidney injury: prevention, detection and management protocols.</li>
+                <li style="margin-bottom:6px;"><strong>WHO Guidelines:</strong> Analgesic safety standards and triage protocols for high-risk elderly populations.</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 style="color:#ffffff;margin:0 0 6px 0;font-size:14px;">Scientific Honesty & Verification:</h4>
+              <p style="margin:0;">We do not claim certifications or committee endorsements that cannot be substantiated. All safety rules in our engine are directly linked to published clinical references with review dates, subject to ongoing evaluation by qualified clinicians.</p>
+            </div>
+
+            <div style="background:rgba(30,41,59,0.7);border:1px solid var(--border-color);border-radius:10px;padding:12px 14px;">
+              <span style="color:#94a3b8;font-size:12px;">In life-threatening emergencies (chest pain, acute dyspnea, altered mental state, severe bleeding), immediately contact Egyptian EMS (<strong>123</strong>) or visit the nearest emergency department.</span>
+            </div>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div style="display:flex;flex-direction:column;gap:16px;line-height:1.65;font-size:13.5px;color:var(--text-secondary);">
+            <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:12px 14px;color:#fca5a5;">
+              <strong style="color:#ffffff;">إخلاء مسؤولية وحدود الاستخدام الإكلينيكي</strong><br/>
+              صحتك AI هو نظام دعم اتخاذ القرار الدوائي وفرز الحالات الطارئة (Clinical Decision-Support). المنظومة <strong>ليست بديلاً عن الطبيب المعالج أو الصيدلي السريري، ولا تقدم تشخيصاً طبياً قاطعاً أو وصفة دوائية</strong>.
+            </div>
+
+            <div>
+              <h4 style="color:#ffffff;margin:0 0 6px 0;font-size:14px;">المراجع الإكلينيكية المعتمدة في محرك الأمان (مراجعة أكتوبر 2026):</h4>
+              <ul style="margin:0;padding-right:18px;">
+                <li style="margin-bottom:6px;"><strong>دليل KDIGO 2024:</strong> التوصيات العالمية لتقييم وإدارة القصور الكلوي، وتجنب مضادات الالتهاب غير الستيرويدية (NSAIDs) في حالات الكلى الحرجة ومخاطر متلازمة Triple Whammy.</li>
+                <li style="margin-bottom:6px;"><strong>منشورات هيئة الدواء المصرية (EDA):</strong> تحذيرات اليقظة الدوائية بشأن فرط استخدام المسكنات ومركبات السيولة والخلطات غير المرخصة (مثل حقنة البرد الشعبية).</li>
+                <li style="margin-bottom:6px;"><strong>إرشادات المعهد الوطني للرعاية (NICE NG148):</strong> بروتوكولات الفحص والوقاية من الفشل الكلوي الحاد (AKI) وتحديد العلامات التحذيرية الحمراء.</li>
+                <li style="margin-bottom:6px;"><strong>منظمة الصحة العالمية (WHO):</strong> معايير الأمان الدوائي ومبادئ الفرز الإسعافي الأولية للأدوية المسكنة ومضادات الالتهاب.</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 style="color:#ffffff;margin:0 0 6px 0;font-size:14px;">الشفافية العلمية والنزاهة الإكلينيكية:</h4>
+              <p style="margin:0;">نحن لا ندّعي اعتماداً أو تصديقاً من لجان وهمية. كافة القواعد الإكلينيكية مشتقة مباشرة من مصادر طبية منشورة ومحددة التواريخ، وتخضع للمراجعة المستمرة من قِبل أطباء وصيادلة مرخصين.</p>
+            </div>
+
+            <div style="background:rgba(30,41,59,0.7);border:1px solid var(--border-color);border-radius:10px;padding:12px 14px;">
+              <span style="color:#94a3b8;font-size:12px;">في حالات الطوارئ القصوى أو ظهور أعراض مثل ألم الصدر، ضيق التنفس الشديد، أو فقدان الوعي، يجب التوجه فوراً لأقرب قسم طوارئ أو الاتصال بالإسعاف (<strong>123</strong>).</span>
+            </div>
+          </div>
+        `;
+      }
+    }
+
     function openPrivacyModal() {
+      renderPrivacyModalContent();
       const el = document.getElementById("privacyModalBackdrop");
       if (el) el.classList.add("open");
     }
@@ -4113,6 +4227,7 @@
     }
 
     function openClinicalSourcesModal() {
+      renderClinicalSourcesModalContent();
       const el = document.getElementById("clinicalSourcesModalBackdrop");
       if (el) el.classList.add("open");
     }
@@ -4630,7 +4745,7 @@
           ${pdfActionsHtml}
           ${feedbackBarHtml}
         </div>
-        <div class="msg-meta">صحتك AI • درجة الخطورة: ${severity}</div>
+        <div class="msg-meta">${window._isSimulationMode ? (CURRENT_LANG === 'en' ? `Sehtak AI • Simulation Demo • ${severity}` : `صحتك AI • محاكاة تجريبية • ${severity}`) : (CURRENT_LANG === 'en' ? `Sehtak AI • Risk Level: ${severity}` : `صحتك AI • درجة الخطورة: ${severity}`)}</div>
       `;
       stream.appendChild(row);
       scrollToBottom();
@@ -4642,7 +4757,7 @@
       if (!data) return;
       const sevBadge = document.getElementById("severityBadge");
       const severity = data.severity || "LOW_RISK";
-      sevBadge.textContent = severity;
+      sevBadge.textContent = window._isSimulationMode ? `[DEMO] ${severity}` : severity;
       if (severity === "CRITICAL_RED_FLAG" || severity === "HIGH_RISK_WARNING") {
         sevBadge.className = "severity-tag critical";
       } else {
@@ -4791,6 +4906,7 @@
     }
 
     function sendFromInput(inputId) {
+      window._isSimulationMode = false;
       const el = document.getElementById(inputId);
       const val = el.value.trim();
       if (!val) return;
@@ -4803,6 +4919,7 @@
     }
 
     async function handleFileUpload(inputEl, kind) {
+      window._isSimulationMode = false;
       const file = inputEl.files[0];
       if (!file) return;
       if (isTrialExhausted()) {
@@ -4885,6 +5002,7 @@
     }
 
     async function toggleVoiceRecording() {
+      window._isSimulationMode = false;
       if (isTrialExhausted()) {
         showTrialExhaustedModal();
         return;
@@ -4986,13 +5104,41 @@
       }
     }
 
+    window._isSimulationMode = false;
+
+    function appendSimulationNotice(scenarioType) {
+      const isEn = CURRENT_LANG === 'en';
+      const stream = document.getElementById("chatStream");
+      const notice = document.createElement("div");
+      notice.className = "simulation-banner-card";
+      notice.style.margin = "10px 0";
+      notice.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="scenario-demo-chip" style="margin:0;font-weight:700;">${isEn ? "CLINICAL SIMULATION DEMO" : "محاكاة إكلينيكية تجريبية"}</span>
+            <strong style="font-size:12.5px;color:#f8fafc;">${isEn ? "Pre-configured Test Case" : "حالة اختبارية مسبقة الإعداد"}</strong>
+          </div>
+          <span style="font-size:11px;color:var(--text-muted);">${isEn ? "Rule & Safety Verification" : "فحص قواعد الأمان"}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.5;">
+          ${isEn 
+            ? "This session is running a simulated clinical scenario to demonstrate decision-support guardrails. It is not an assessment of a real live patient."
+            : "هذه الجلسة تعرض سيناريو افتراضياً مسبق الإعداد للتحقق من قواعد الأمان والفرز الطبي، ولا تُعد استشارة أو تقييماً حياً لمريض حقيقي."}
+        </div>
+      `;
+      stream.appendChild(notice);
+      scrollToBottom();
+    }
+
     function triggerScenario(type) {
       if (isTrialExhausted()) {
         showTrialExhaustedModal();
         return;
       }
+      window._isSimulationMode = true;
       navigateToPage('triage');
       switchMobileTab('chat');
+      appendSimulationNotice(type);
       const isEn = CURRENT_LANG === 'en';
 
       if (type === "cold_flu") {
@@ -5057,6 +5203,7 @@
     }
 
     function resetSession() {
+      window._isSimulationMode = false;
       latestPdfBase64Ar = null;
       latestPdfBase64En = null;
       document.getElementById("downloadPdfArBtn").disabled = true;

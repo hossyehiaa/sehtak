@@ -21,3 +21,7 @@ generated_reports/
 .vercel/
 .DS_Store
 .vercel
+
+# Node
+node_modules/
+tests/ui/node_modules/

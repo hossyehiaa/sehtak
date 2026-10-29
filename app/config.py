@@ -55,7 +55,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = DEFAULT_DB_URL
 
     # Auth & JWT Security (Task 1)
-    JWT_SECRET: str = "sehtak-super-secret-jwt-key-2026-production-ready"
+    JWT_SECRET: str = os.environ.get("JWT_SECRET") or "sehtak-super-secret-jwt-key-2026-production-ready"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MIN: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
