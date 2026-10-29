@@ -25,3 +25,4 @@ generated_reports/
 # Node
 node_modules/
 tests/ui/node_modules/
+tests/ui/package-lock.json
